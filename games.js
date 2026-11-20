@@ -34,14 +34,22 @@
   /* ---------- markup ---------- */
   const bar = document.createElement('div'); bar.className = 'gbar';
   bar.innerHTML = '<div class="gtabs" role="tablist">' + TABS.map((t, i) => '<button type="button" role="tab" data-g="' + t[0] + '" aria-selected="' + !i + '">' + t[1] + '</button>').join('') + '</div>' +
-    '<button type="button" class="glb" id="glbb" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Leaderboard</span></button>';
+    '<button type="button" class="glb" id="glbb" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Leaderboard</span></button><button type="button" class="glb ghb" id="ghb" aria-expanded="false" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17h.01"/></svg></button>';
   const lb = document.createElement('div'); lb.className = 'glbp'; lb.hidden = true;
+  const gh = document.createElement('div'); gh.className = 'glbp ghp'; gh.hidden = true;
+  const GUIDE = { sudoku: ['Sudoku', 'Fill every row, column and 3×3 box with 1 to 9, no repeats.', 'Tap a cell, then a number. Wrong numbers turn red.', 'Pick Easy, Medium or Hard. The board ranks the fastest time for each level.'],
+    quick: ['Quick maths', 'Answer as many sums as you can in 60 seconds.', 'Type the answer. It moves on by itself when you get it right.', 'One point per right answer.'],
+    bigger: ['Bigger or smaller', 'Two sums appear. Pick the one with the bigger answer.', 'Tap it, or press ← for left and → for right.', 'One point per right pick in 60 seconds.'],
+    sequence: ["What's next", 'Four numbers follow a pattern: adding, subtracting, doubling or squares.', 'Type the number that comes next.', 'One point per right answer in 60 seconds.'],
+    wordle: ['Wordle', "Guess today's five-letter word in six tries. Everyone gets the same word.", 'Green: right letter, right spot. Yellow: in the word, wrong spot. Grey: not in the word.', 'After your daily go, practise with random words. Fewest tries, then fastest time, wins.'],
+    memory: ['Memory', 'Flip two cards at a time to find the 8 matching pairs.', 'Pairs that match stay face up. The rest flip back.', 'Fewest moves, then fastest time, wins.'] };
+  const guide = () => { const g = GUIDE[cur]; gh.innerHTML = '<div class="glbh"><b>How to play ' + g[0] + '</b></div><ul class="ghl">' + g.slice(1).map(t => '<li>' + t + '</li>').join('') + '</ul>'; };
   const mg = document.createElement('div'); mg.className = 'sdk mg'; mg.hidden = true;
   mg.innerHTML = '<div class="sdh"><b class="mgn"></b><span class="sdt mgt">1:00</span></div><div class="mgbar"><i></i></div>' +
     '<div class="mgstage"><div class="mgintro"><p class="mghow"></p><button type="button" class="sdnew mgstart">Start · 60 seconds</button><p class="mgbest"></p></div>' +
     '<div class="mgplay" hidden><div class="mgq"></div><div class="mgans"><input class="mgin" inputmode="numeric" autocomplete="off" aria-label="Your answer"><div class="mgch"><button type="button" data-c="0"></button><button type="button" data-c="1"></button></div></div><div class="mgsc">Score <b>0</b></div></div>' +
     '<div class="mgend" hidden></div></div>';
-  sdk.before(bar); bar.after(lb); sdk.after(mg);
+  sdk.before(bar); bar.after(gh); gh.after(lb); sdk.after(mg);
 
   /* ---------- leaderboard ---------- */
   let cur = 'sudoku';
@@ -55,7 +63,8 @@
       lb.querySelector('ol').innerHTML = rows.length ? rows.map((x, i) => '<li><span class="rk">' + (i + 1) + '</span>' + (/^data:image\//.test(x.avatar || '') ? '<img src="' + esc(x.avatar) + '" alt="">' : '<i>' + esc((x.name || '?')[0].toUpperCase()) + '</i>') +
         '<span class="nm">' + esc(x.name) + '</span><b>' + show(g, x.score) + '</b></li>').join('') : '<li class="glbe">No one yet. Finish a game and take the top spot.</li>';
     } catch (e) { lb.querySelector('ol').innerHTML = '<li class="glbe">The leaderboard is taking a break. Try again soon.</li>'; } };
-  const lbb = document.getElementById('glbb');
+  const lbb = document.getElementById('glbb'), ghb = document.getElementById('ghb');
+  ghb.onclick = () => { const open = gh.hidden; gh.hidden = !open; ghb.setAttribute('aria-expanded', open); ghb.classList.toggle('on', open); if (open) guide(); };
   lbb.onclick = () => { const open = lb.hidden; lb.hidden = !open; lbb.setAttribute('aria-expanded', open); lbb.classList.toggle('on', open); if (open) showBoard(); };
 
   /* ---------- after a game: log it, offer the leaderboard ---------- */
@@ -165,6 +174,6 @@
   bar.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     if (st) { clearInterval(st.tm); st = null; }
     bar.querySelectorAll('[data-g]').forEach(x => x.setAttribute('aria-selected', x === b)); cur = b.dataset.g; b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; wd.hidden = cur !== 'wordle'; mm.hidden = cur !== 'memory'; if (G[cur]) intro(); if (cur === 'wordle' && !W.ans) wStart(false); if (cur === 'memory' && !M.cards) mStart(); if (!lb.hidden) showBoard(); });
+    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; wd.hidden = cur !== 'wordle'; mm.hidden = cur !== 'memory'; if (G[cur]) intro(); if (cur === 'wordle' && !W.ans) wStart(false); if (cur === 'memory' && !M.cards) mStart(); if (!lb.hidden) showBoard(); if (!gh.hidden) guide(); });
   document.querySelectorAll('#sdlv button').forEach(b => b.addEventListener('click', () => { if (!lb.hidden) setTimeout(showBoard, 0); }));
 })();
