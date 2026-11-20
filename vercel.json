@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/:path*", "has": [{ "type": "host", "value": "about-prasanna.vercel.app" }], "destination": "https://www.prasanna.lol/:path*", "permanent": true }
+  ]
+}
