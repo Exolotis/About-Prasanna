@@ -113,18 +113,21 @@
   ['qwertyuiop', 'asdfghjkl', '+zxcvbnm-'].forEach(r => { const row = document.createElement('div'); [...r].forEach(ch => { const b = document.createElement('button'); b.type = 'button';
     b.dataset.k = ch === '+' ? 'Enter' : ch === '-' ? 'Backspace' : ch; b.textContent = ch === '+' ? 'Enter' : ch === '-' ? '⌫' : ch; if (ch === '+' || ch === '-') b.className = 'wide'; row.appendChild(b); }); wk.appendChild(row); });
   const day = Math.floor((Date.now() + 19800000) / 86400000), dailyWord = WORDS[(day * 7919 + 13) % WORDS.length];
-  const wStart = practice => { W.practice = !!practice; W.ans = practice ? pick(WORDS) : dailyWord; wd.querySelector('.sdh b').textContent = practice ? 'Wordle · Practice' : 'Wordle · Today'; W.row = 0; W.col = 0; W.done = false; W.t0 = 0; wmsg.textContent = practice ? 'Practice word. Not on the leaderboard.' : "Today's word. Same for everyone, one go a day."; wd.querySelector('.wdend').innerHTML = '';
+  const wStart = practice => { loadDict(); W.practice = !!practice; W.ans = practice ? pick(WORDS) : dailyWord; wd.querySelector('.sdh b').textContent = practice ? 'Wordle · Practice' : 'Wordle · Today'; W.row = 0; W.col = 0; W.done = false; W.t0 = 0; wmsg.textContent = practice ? 'Practice word. Not on the leaderboard.' : "Today's word. Same for everyone, one go a day."; wd.querySelector('.wdend').innerHTML = '';
     wg.querySelectorAll('span').forEach(s => { s.textContent = ''; s.className = ''; }); wk.querySelectorAll('button').forEach(b => b.className = b.className.replace(/\b(g|y|x)\b/g, '').trim());
     clearInterval(W.tm); wd.querySelector('.wdt').textContent = '0:00';
     const done = !practice && store.get('wd-' + day); if (done) { W.done = true; wmsg.textContent = 'You played today' + (done === 'x' ? '. Tomorrow brings a new word.' : ': ' + done + '. New word tomorrow.'); const E = wd.querySelector('.wdend'); E.innerHTML = '<button type="button" class="sdnew">Practice with a random word</button>'; E.firstChild.onclick = () => wStart(true); } };
   const cell = (r, c) => wg.children[r * 5 + c];
+  let DICT = null; const loadDict = () => { if (DICT) return; DICT = fetch('/words5.txt').then(r => r.ok ? r.text() : '').then(t => { const set = new Set(t.split(/s+/).filter(Boolean)); WORDS.forEach(w => set.add(w)); DICT = set.size > 1000 ? set : 'off'; }).catch(() => { DICT = 'off'; }); };
   const wKey = k => { if (W.done || !W.ans) return;
     if (!W.t0 && /^[a-z]$/i.test(k)) { W.t0 = Date.now(); W.tm = setInterval(() => { wd.querySelector('.wdt').textContent = fmt(Math.round((Date.now() - W.t0) / 1000)); }, 1000); }
     if (/^[a-z]$/i.test(k) && W.col < 5) { const c = cell(W.row, W.col++); c.textContent = k.toLowerCase(); c.className = 'f'; return; }
     if (k === 'Backspace' && W.col > 0) { const c = cell(W.row, --W.col); c.textContent = ''; c.className = ''; return; }
     if (k !== 'Enter') return;
     if (W.col < 5) { wmsg.textContent = 'Five letters, please.'; wg.classList.remove('shk'); void wg.offsetWidth; wg.classList.add('shk'); return; }
-    const guess = [...Array(5)].map((_, i) => cell(W.row, i).textContent).join(''), res = Array(5).fill('x'), left = W.ans.split('');
+    const guess = [...Array(5)].map((_, i) => cell(W.row, i).textContent).join('');
+    if (DICT instanceof Set && !DICT.has(guess)) { wmsg.textContent = 'Not in the word list.'; wg.classList.remove('shk'); void wg.offsetWidth; wg.classList.add('shk'); return; }
+    const res = Array(5).fill('x'), left = W.ans.split('');
     for (let i = 0; i < 5; i++) if (guess[i] === W.ans[i]) { res[i] = 'g'; left[i] = null; }
     for (let i = 0; i < 5; i++) if (res[i] !== 'g') { const j = left.indexOf(guess[i]); if (j > -1) { res[i] = 'y'; left[j] = null; } }
     res.forEach((r, i) => { const c = cell(W.row, i); setTimeout(() => { c.className = r + ' flip'; }, i * 120);
