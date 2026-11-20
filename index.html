@@ -147,6 +147,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .calm.on .sh{transform:none}.calm iframe{width:100%;height:100%;border:0}.calm .x{position:absolute;top:14px;right:14px;z-index:2;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:20px;line-height:1;cursor:pointer}
 @media(max-width:600px){.calm{padding:0;align-items:end}.calm .sh{height:92vh;border-radius:24px 24px 0 0}.calb{right:16px;bottom:16px}}
 .cb rect{fill:#3a3a3e;transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0);transition:transform .9s var(--ease)}.cb rect.hot{fill:#c8f23c}.xi.in .cb rect{transform:none}.cb figcaption span:first-child{color:#c8f23c}
+.mails{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:40px;max-width:1000px;margin-inline:auto;text-align:left}
+.ml{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 16px 18px 22px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .2s}
+.ml:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}.ml a{min-width:0;color:inherit;text-decoration:none}.ml small{display:block;font-size:13px;color:var(--mute);margin-bottom:3px}
+.ml span{display:block;font-size:15.5px;font-weight:600;letter-spacing:-.01em;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ml button{flex:none;height:34px;padding:0 14px;border:0;border-radius:999px;background:rgba(255,255,255,.1);color:#f5f5f7;font:600 13px var(--f);cursor:pointer}.ml button:hover{background:#f5f5f7;color:#000}
+@media(max-width:860px){.mails{grid-template-columns:1fr;max-width:460px}}
 </style>
 </head>
 <body>
@@ -301,12 +307,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="kick rv">Say hello</div>
     <h2 class="rv">Pricing something blind? <span class="g">Let's talk.</span></h2>
     <div class="rv"><a class="btn w book" href="https://cal.com/moluscca-support-rc4jcj/30min" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Book a 30-min call</a></div>
-    <div class="mail rv"><span>prasanna.bhatkar990@gmail.com</span><button type="button" id="copy">Copy</button></div>
+    <div class="mails rv"><div class="ml"><a href="mailto:prasanna@moluscca.com"><small>Moluscca</small><span>prasanna@moluscca.com</span></a><button type="button" data-copy="prasanna@moluscca.com">Copy</button></div><div class="ml"><a href="mailto:prasanna@dodopayments.com"><small>Dodo Payments</small><span>prasanna@dodopayments.com</span></a><button type="button" data-copy="prasanna@dodopayments.com">Copy</button></div><div class="ml"><a href="mailto:prasanna.bhatkar990@gmail.com"><small>Personal</small><span>prasanna.bhatkar990@gmail.com</span></a><button type="button" data-copy="prasanna.bhatkar990@gmail.com">Copy</button></div></div>
     <div class="links rv">
       <a href="https://www.linkedin.com/in/prasanna-bhatkar-/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>LinkedIn</a>
       <a href="https://github.com/Exolotis" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>GitHub</a>
       <a href="https://www.instagram.com/prasanna_bhatkar/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</a>
-      <a href="tel:+919606783762">+91 96067 83762</a>
       <a href="https://drive.google.com/drive/u/0/folders/12uHezXlF6-sCG7z94eg3mI9fGl5Q4kJx" target="_blank" rel="noopener">Resume ↗</a>
     </div>
   </div>
@@ -347,7 +352,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     else { out += L + '<br>'; li++; ci = 0; setTimeout(type, 380); } };
   if (RM) term.innerHTML = lines.join('<br>'); else new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { type(); o.disconnect(); } }).observe(term);
   /* copy email */
-  document.getElementById('copy').onclick = e => { navigator.clipboard.writeText('prasanna.bhatkar990@gmail.com').then(() => { e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = 'Copy', 1600); }); };
+  document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard.writeText(b.dataset.copy).then(() => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1600); }));
 })();
 </script>
 <button class="calb" id="calb" type="button"><i></i>Book a call</button>
