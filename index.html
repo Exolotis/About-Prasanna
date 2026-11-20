@@ -321,9 +321,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <section id="startups">
   <div class="wrap">
-    <div class="kick rv">Startups</div>
-    <h2 class="rv">Building something? <span class="g">Put it on the wall.</span></h2>
-    <p class="sub rv">Founders I've met, worked with or rooted for. Add yours and it shows up here once I've had a look.</p>
+    <div class="kick rv">Startup directory</div>
+    <h2 class="rv">Building something? <span class="g">Get listed.</span></h2>
+    <p class="sub rv">A growing directory of startups worth knowing. Add yours with a name, website and logo, and it goes live once it's reviewed.</p>
     <div class="wall rv" id="wall"><button class="addsu" type="button" id="addsu"><b>+</b><span>List your startup</span></button></div>
   </div>
 </section>
@@ -431,7 +431,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     if (name.length < 2) return err('Add your startup name.'); if (!/^https?:\/\/[^ .]+\.[^ ]{2,}$/i.test(url)) return err('Add a working website link.'); if (!logo) return err('Add your logo.');
     const b = document.getElementById('sugo'); b.disabled = true; b.textContent = 'Sending…'; err();
     try { const r = await fetch(SB, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }, H), body: JSON.stringify({ name, url, logo }) });
-      if (!r.ok) throw 0; f.classList.add('done'); f.querySelector('h3').textContent = 'Thanks, ' + name + ' is in.'; f.querySelector('.lead').textContent = "I'll take a look and it'll show up on the wall soon.";
+      if (!r.ok) throw 0; f.classList.add('done'); f.querySelector('h3').textContent = 'Thanks, ' + name + ' is in.'; f.querySelector('.lead').textContent = "It'll show up in the directory once it's reviewed.";
     } catch (x) { err("Couldn't send that just now. Try again in a minute."); b.disabled = false; b.textContent = 'Send for review'; } };
 })();
 </script>
