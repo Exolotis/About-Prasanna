@@ -57,8 +57,10 @@
   document.getElementById('sdn').addEventListener('click', () => { const o = sdk.querySelector('.gjoin'); if (o) o.remove(); });
   document.querySelectorAll('#sdlv button').forEach(b => b.addEventListener('click', () => { const o = sdk.querySelector('.gjoin'); if (o) o.remove(); }));
   const showBoard = async g => { g = g || boardKey(); const asc = ASC(g);
-    lb.innerHTML = '<div class="glbh"><b>' + label(g) + '</b><small>' + (g.startsWith('sudoku') ? 'Fastest times' : g === 'wordle' ? 'Fewest tries, then fastest' : g === 'memory' ? 'Fewest moves, then fastest' : 'Top scores in 60 seconds') + '</small></div><ol class="glbl"><li class="glbe">Loading…</li></ol>';
-    try { const r = await fetch(SB + '?select=name,avatar,score&listed=eq.true&game=eq.' + g + '&order=score.' + (asc ? 'asc' : 'desc') + ',created_at.asc&limit=10', { headers: H });
+    lb.innerHTML = '<div class="glbh"><b>' + label(g) + '</b><small>' + (g.startsWith('sudoku') ? 'Fastest times' : g === 'wordle' ? "Today's word · fewest tries, then fastest" : g === 'memory' ? 'Fewest moves, then fastest' : 'Top scores in 60 seconds') + '</small></div><ol class="glbl"><li class="glbe">Loading…</li></ol>';
+    /* Wordle: only today's word counts (the day turns at midnight India time) */
+    const since = g === 'wordle' ? '&created_at=gte.' + new Date(Math.floor((Date.now() + 19800000) / 86400000) * 86400000 - 19800000).toISOString() : '';
+    try { const r = await fetch(SB + '?select=name,avatar,score&listed=eq.true&game=eq.' + g + since + '&order=score.' + (asc ? 'asc' : 'desc') + ',created_at.asc&limit=10', { headers: H });
       const rows = r.ok ? await r.json() : [];
       lb.querySelector('ol').innerHTML = rows.length ? rows.map((x, i) => '<li><span class="rk">' + (i + 1) + '</span>' + (/^data:image\//.test(x.avatar || '') ? '<img src="' + esc(x.avatar) + '" alt="">' : '<i>' + esc((x.name || '?')[0].toUpperCase()) + '</i>') +
         '<span class="nm">' + esc(x.name) + '</span><b>' + show(g, x.score) + '</b></li>').join('') : '<li class="glbe">No one yet. Finish a game and take the top spot.</li>';
