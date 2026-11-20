@@ -184,6 +184,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .suf .lg b{display:block;font-size:15px;color:var(--ink)}.suf .lg small{display:block;font-size:13px;color:var(--mute);margin-top:2px}
 .suf .err{min-height:18px;font-size:13.5px;color:#ff6961;margin:-4px 0}.suf .btn{justify-content:center;border:0;cursor:pointer;font:600 16px var(--f)}.suf .btn[disabled]{opacity:.5}
 .suf.done{align-items:center;text-align:center}.suf.done label,.suf.done .btn,.suf.done .err{display:none}
+.lst{position:fixed;top:14px;right:22px;z-index:50;display:flex;align-items:center;gap:10px;height:48px;padding:0 18px 0 7px;border-radius:999px;background:rgba(22,22,24,.62);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 1px var(--line),0 10px 40px rgba(0,0,0,.4);font-size:13px;font-weight:500;color:var(--ink2);transition:color .2s,box-shadow .2s}
+.lst:hover{color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.22),0 10px 40px rgba(0,0,0,.4)}.stk{display:flex}.stk img,.stk i{width:34px;height:34px;border-radius:50%;object-fit:contain;background:#fff;box-shadow:0 0 0 2px #161618;margin-left:-10px}.stk>:first-child{margin-left:0}
+.stk i{display:grid;place-items:center;font-style:normal;font-size:18px;color:#000;background:#f5f5f7}
+@media(max-width:1180px){.lst{padding:0 7px;gap:0}.lst #lstt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}}@media(max-width:600px){.nav{left:12px;transform:none}.lst{top:14px;right:12px;height:48px;padding:0 7px}.stk img,.stk i{width:32px;height:32px;margin-left:-12px}}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Prasanna Bhatkar","url":"https://www.prasanna.lol/","image":"https://www.prasanna.lol/prasanna.jpg","jobTitle":"Risk Analyst","worksFor":{"@type":"Organization","name":"Dodo Payments","url":"https://www.dodopayments.com"},"founder":[{"@type":"Organization","name":"Moluscca","url":"https://www.moluscca.com"}],"alumniOf":{"@type":"Organization","name":"Institute of Actuaries of India"},"address":{"@type":"PostalAddress","addressLocality":"Bangalore","addressCountry":"IN"},"knowsAbout":["Actuarial science","Risk analysis","Merchant risk","Parametric insurance","Climate risk","Insurance pricing"],"award":["Best Paper, ACTCON 2025","Best Paper, ACTSUM 2024"],"sameAs":["https://www.linkedin.com/in/prasanna-bhatkar-/","https://github.com/Exolotis","https://www.instagram.com/prasanna_bhatkar/","https://www.moluscca.com","https://templates.moluscca.com"]}</script>
 </head>
@@ -192,9 +196,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <nav class="nav" aria-label="Main">
   <a class="me" href="#top"><img src="prasanna.jpg" alt="">Prasanna</a>
-  <a href="#building">Building</a><a href="#work">Work</a><a href="#research">Research</a><a href="#lead">Hobbies</a><a href="#startups">Startups</a>
+  <a href="#building">Building</a><a href="#work">Work</a><a href="#research">Research</a><a href="#lead">Hobbies</a>
   <a class="cta" href="https://cal.com/moluscca-support-rc4jcj/30min" target="_blank" rel="noopener">Book a call</a>
 </nav>
+<a class="lst" id="lst" href="#startups"><span class="stk" id="stk"><i>+</i></span><span id="lstt">List your startup</span></a>
 
 <header class="hero" id="top">
   <div class="wrap hgrid">
@@ -427,7 +432,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   const wall = document.getElementById('wall'), add = document.getElementById('addsu'), m = document.getElementById('sum'), f = document.getElementById('suf');
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   fetch(SB + '?select=name,url,logo&approved=eq.true&order=created_at.asc', { headers: H }).then(r => r.ok ? r.json() : []).then(rows => {
-    rows.filter(x => /^https?:\/\//i.test(x.url) && /^data:image\//.test(x.logo)).forEach(x => add.insertAdjacentHTML('beforebegin',
+    rows = rows.filter(x => /^https?:\/\//i.test(x.url) && /^data:image\//.test(x.logo));
+    if (rows.length) { document.getElementById('stk').innerHTML = rows.slice(-3).reverse().map(x => '<img src="' + esc(x.logo) + '" alt="">').join('');
+      document.getElementById('lstt').textContent = rows.length + (rows.length > 1 ? ' startups listed' : ' startup listed'); }
+    rows.forEach(x => add.insertAdjacentHTML('beforebegin',
       '<a href="' + esc(x.url) + '" target="_blank" rel="noopener nofollow"><img src="' + esc(x.logo) + '" alt="" loading="lazy"><b>' + esc(x.name) + '</b><small>' + esc(x.url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '')) + '</small></a>'));
   }).catch(() => {});
   let logo = '';
