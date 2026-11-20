@@ -437,5 +437,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     } catch (x) { err("Couldn't send that just now. Try again in a minute."); b.disabled = false; b.textContent = 'Send for review'; } };
 })();
 </script>
+<script>
+/* in-page links scroll without putting #section in the address bar */
+document.addEventListener('click', e => { const a = e.target.closest('a[href^="#"]'); if (!a) return; const id = a.getAttribute('href').slice(1), t = id ? document.getElementById(id) : document.body;
+  if (!t) return; e.preventDefault(); t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
+if (location.hash) { const t = document.getElementById(location.hash.slice(1)); history.replaceState(null, '', location.pathname + location.search); if (t) addEventListener('load', () => t.scrollIntoView()); }
+</script>
 </body>
 </html>
