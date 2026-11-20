@@ -199,6 +199,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .pad{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:14px}.pad button{height:46px;border:0;border-radius:12px;background:rgba(255,255,255,.07);color:var(--ink);font:600 18px var(--f);cursor:pointer;transition:background .15s}.pad button:hover{background:rgba(255,255,255,.14)}.pad button.done{opacity:.25}
 .sdf{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}.sdf span{font-size:14.5px;color:var(--mute)}.sdnew{height:42px;padding:0 18px;border:0;border-radius:999px;background:#f5f5f7;color:#000;font:600 14px var(--f);cursor:pointer;transition:transform .2s var(--ease)}.sdnew:active{transform:scale(.96)}
 @media(max-width:600px){.sdk{padding:14px;border-radius:24px}.pad{grid-template-columns:repeat(5,1fr)}.pad button{height:44px}}
+.suf textarea{padding:13px 16px;border-radius:14px;border:0;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:500 16px/1.4 var(--f);outline:none;resize:none}.suf textarea:focus{box-shadow:inset 0 0 0 2px #2997ff}
+.suf label:not(.lg)>span{display:flex;justify-content:space-between}.suf label>span em{font-style:normal;font-weight:500;color:var(--faint)}.suf input:disabled,.suf textarea:disabled{opacity:.5}
+.suf .code{display:flex;flex-direction:column;gap:8px}.suf .code[hidden]{display:none}.suf #sutok{font-size:22px;letter-spacing:.3em;text-align:center}.lnk{align-self:center;border:0;background:none;color:#2997ff;font:500 14px var(--f);cursor:pointer}
+.suf.done .code{display:none}.suf .sh,.suf{max-height:92vh;overflow:auto}
+.wall p{margin:0;font-size:13px;line-height:1.4;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Prasanna Bhatkar","url":"https://www.prasanna.lol/","image":"https://www.prasanna.lol/prasanna.jpg","jobTitle":"Risk Analyst","worksFor":{"@type":"Organization","name":"Dodo Payments","url":"https://www.dodopayments.com"},"founder":[{"@type":"Organization","name":"Moluscca","url":"https://www.moluscca.com"}],"alumniOf":{"@type":"Organization","name":"Institute of Actuaries of India"},"address":{"@type":"PostalAddress","addressLocality":"Bangalore","addressCountry":"IN"},"knowsAbout":["Actuarial science","Risk analysis","Merchant risk","Parametric insurance","Climate risk","Insurance pricing"],"award":["Best Paper, ACTCON 2025","Best Paper, ACTSUM 2024"],"sameAs":["https://www.linkedin.com/in/prasanna-bhatkar-/","https://github.com/Exolotis","https://www.instagram.com/prasanna_bhatkar/","https://www.moluscca.com","https://templates.moluscca.com"]}</script>
 </head>
@@ -385,13 +390,16 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 </section>
 <div class="calm" id="sum" role="dialog" aria-modal="true" aria-label="List your startup"><form class="sh suf" id="suf" novalidate>
   <button class="x" type="button" aria-label="Close">×</button>
-  <h3>List your startup</h3><p class="lead">Name, website and logo. I check every one before it goes live.</p>
+  <h3>List your startup</h3><p class="lead">We email you a code to confirm it's really you. I check every listing before it goes live.</p>
   <label class="lg"><input type="file" id="sulogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden><span class="lgp" id="lgp">Logo</span><span><b>Upload a logo</b><small>Square works best. PNG, JPG, WebP or SVG.</small></span></label>
   <label><span>Startup name</span><input id="suname" maxlength="60" autocomplete="organization" placeholder="Acme" required></label>
   <label><span>Website</span><input id="suurl" type="url" maxlength="200" inputmode="url" placeholder="https://acme.com" required></label>
+  <label><span>One line about it <em id="sucnt">0/160</em></span><textarea id="sudesc" maxlength="160" rows="2" placeholder="What you build, in a sentence."></textarea></label>
+  <label><span>Your email</span><input id="sumail" type="email" maxlength="120" autocomplete="email" placeholder="you@acme.com" required></label>
+  <div class="code" id="sucode" hidden><label><span>Code from your email</span><input id="sutok" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456"></label><button type="button" class="lnk" id="suback">Use a different email</button></div>
   <input id="suhp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
   <p class="err" id="suerr" role="alert"></p>
-  <button class="btn w" type="submit" id="sugo">Send for review</button>
+  <button class="btn w" type="submit" id="sugo">Email me a code</button>
 </form></div>
 <section class="contact" id="contact">
   <div class="wrap">
@@ -463,15 +471,15 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 </script>
 <script>
 (() => {
-  const SB = 'https://orhlwvmxnsztwhfimjru.supabase.co/rest/v1/startups', H = { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs' };
+  const AU = 'https://orhlwvmxnsztwhfimjru.supabase.co/auth/v1', SB = 'https://orhlwvmxnsztwhfimjru.supabase.co/rest/v1/startups', H = { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs' };
   const wall = document.getElementById('wall'), add = document.getElementById('addsu'), m = document.getElementById('sum'), f = document.getElementById('suf');
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  fetch(SB + '?select=name,url,logo&approved=eq.true&order=created_at.asc', { headers: H }).then(r => r.ok ? r.json() : []).then(rows => {
+  fetch(SB + '?select=name,url,logo,description&approved=eq.true&order=created_at.asc', { headers: H }).then(r => r.ok ? r.json() : []).then(rows => {
     rows = rows.filter(x => /^https?:\/\//i.test(x.url) && /^data:image\//.test(x.logo));
     if (rows.length) { document.getElementById('stk').innerHTML = rows.slice(-3).reverse().map(x => '<img src="' + esc(x.logo) + '" alt="">').join('') + '<i>+</i>';
       document.getElementById('lstt').innerHTML = rows.length + ' listed <span class="sep"></span><b>Add yours</b>'; }
     rows.forEach(x => add.insertAdjacentHTML('beforebegin',
-      '<a href="' + esc(x.url) + '" target="_blank" rel="noopener nofollow"><img src="' + esc(x.logo) + '" alt="" loading="lazy"><b>' + esc(x.name) + '</b><small>' + esc(x.url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '')) + '</small></a>'));
+      '<a href="' + esc(x.url) + '" target="_blank" rel="noopener nofollow"><img src="' + esc(x.logo) + '" alt="" loading="lazy"><b>' + esc(x.name) + '</b>' + (x.description ? '<p>' + esc(x.description) + '</p>' : '') + '<small>' + esc(x.url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '')) + '</small></a>'));
   }).catch(() => {});
   let logo = '';
   const open = () => { m.classList.add('on'); document.body.style.overflow = 'hidden'; setTimeout(() => document.getElementById('suname').focus(), 200); };
@@ -485,14 +493,35 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       x.drawImage(img, (128 - w) / 2, (128 - h) / 2, w, h); logo = c.toDataURL('image/webp', .85); if (!logo.startsWith('data:image/webp')) logo = c.toDataURL('image/png');
       const p = document.getElementById('lgp'); p.style.backgroundImage = 'url(' + logo + ')'; p.classList.add('has'); err(); URL.revokeObjectURL(img.src); };
     img.onerror = () => err("That file didn't open as an image."); img.src = URL.createObjectURL(file); };
-  f.onsubmit = async e => { e.preventDefault(); if (document.getElementById('suhp').value) return;
-    const name = document.getElementById('suname').value.trim(); let url = document.getElementById('suurl').value.trim();
-    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-    if (name.length < 2) return err('Add your startup name.'); if (!/^https?:\/\/[^ .]+\.[^ ]{2,}$/i.test(url)) return err('Add a working website link.'); if (!logo) return err('Add your logo.');
-    const b = document.getElementById('sugo'); b.disabled = true; b.textContent = 'Sending…'; err();
-    try { const r = await fetch(SB, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }, H), body: JSON.stringify({ name, url, logo }) });
-      if (!r.ok) throw 0; f.classList.add('done'); f.querySelector('h3').textContent = 'Thanks, ' + name + ' is in.'; f.querySelector('.lead').textContent = "It'll show up in the directory once it's reviewed.";
-    } catch (x) { err("Couldn't send that just now. Try again in a minute."); b.disabled = false; b.textContent = 'Send for review'; } };
+  const val = id => document.getElementById(id).value.trim(), btn = document.getElementById('sugo'), box = document.getElementById('sucode');
+  const desc = document.getElementById('sudesc'); desc.oninput = () => document.getElementById('sucnt').textContent = desc.value.length + '/160';
+  let step = 1, mail = '';
+  const lock = on => f.querySelectorAll('input:not(#sutok):not(#suhp), textarea').forEach(x => x.disabled = on);
+  document.getElementById('suback').onclick = () => { step = 1; box.hidden = true; lock(false); btn.textContent = 'Email me a code'; err(); };
+  f.onsubmit = async e => { e.preventDefault(); if (document.getElementById('suhp').value) return; err();
+    const name = val('suname'); let url = val('suurl'); if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    if (step === 1) {
+      mail = val('sumail').toLowerCase();
+      if (name.length < 2) return err('Add your startup name.'); if (!/^https?:\/\/[^ .]+\.[^ ]{2,}$/i.test(url)) return err('Add a working website link.');
+      if (!logo) return err('Add your logo.'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) return err('Add a working email.');
+      btn.disabled = true; btn.textContent = 'Sending…';
+      try { const r = await fetch(AU + '/otp', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify({ email: mail, create_user: true }) });
+        if (r.status === 429) throw 'Too many codes just now. Wait a minute and try again.'; if (!r.ok) throw 0;
+        step = 2; lock(true); box.hidden = false; btn.textContent = 'Verify and submit'; document.getElementById('sutok').focus();
+        err(''); document.getElementById('suerr').textContent = ''; f.querySelector('.lead').textContent = 'Code sent to ' + mail + '. Check spam if it isn\'t there in a minute.';
+      } catch (x) { err(typeof x === 'string' ? x : "Couldn't send the code. Try again in a minute."); btn.textContent = 'Email me a code'; }
+      btn.disabled = false; return; }
+    const tok = val('sutok').replace(/\D/g, ''); if (tok.length < 6) return err('Enter the code from your email.');
+    btn.disabled = true; btn.textContent = 'Checking…';
+    try { const v = await fetch(AU + '/verify', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify({ type: 'email', email: mail, token: tok }) });
+      if (!v.ok) throw "That code didn't match, or it expired. Check it, or use a different email to get a new one.";
+      const at = (await v.json()).access_token;
+      const r = await fetch(SB, { method: 'POST', headers: { apikey: H.apikey, Authorization: 'Bearer ' + at, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ name, url, logo, description: desc.value.trim() || null, email: mail }) });
+      if (!r.ok) throw "Couldn't add it. You can list up to 3 startups a day.";
+      f.classList.add('done'); f.querySelector('h3').textContent = 'Thanks, ' + name + ' is in.'; f.querySelector('.lead').textContent = "Email confirmed. It'll show up in the directory once it's reviewed.";
+    } catch (x) { err(typeof x === 'string' ? x : "Couldn't finish that. Try again in a minute."); btn.textContent = 'Verify and submit'; }
+    btn.disabled = false; };
 })();
 </script>
 <script>
