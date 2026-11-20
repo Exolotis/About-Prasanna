@@ -188,6 +188,20 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .lst:hover{color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.22),0 10px 40px rgba(0,0,0,.4)}.stk{display:flex}.stk img,.stk i{width:34px;height:34px;border-radius:50%;object-fit:contain;background:#fff;box-shadow:0 0 0 2px #161618;margin-left:-10px}.stk>:first-child{margin-left:0}
 .stk i{display:grid;place-items:center;font-style:normal;font-size:18px;color:#000;background:#f5f5f7}#lstt{display:flex;align-items:center;gap:8px}#lstt b{color:#f5f5f7;font-weight:600}.sep{width:3px;height:3px;border-radius:50%;background:var(--faint)}
 @media(max-width:1180px){.lst{padding:0 7px;gap:0}.lst #lstt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}}@media(max-width:600px){.nav{left:12px;transform:none}.lst{top:14px;right:12px;height:48px;padding:0 7px}.stk img,.stk i{width:32px;height:32px;margin-left:-12px}}
+.sdk{max-width:520px;margin:44px auto 0;padding:22px;border-radius:30px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.sdh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.seg{display:flex;padding:4px;border-radius:999px;background:rgba(255,255,255,.06)}.seg button{height:34px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--mute);font:600 13.5px var(--f);cursor:pointer;transition:background .2s,color .2s}.seg button.on{background:#f5f5f7;color:#000}
+.sdt{font-size:15px;font-weight:600;color:var(--ink2);font-variant-numeric:tabular-nums}
+.sdg{display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 0 0 1.5px rgba(255,255,255,.28)}
+.sdg button{border:0;padding:0;margin:0;background:#0b0b0c;color:var(--ink);font:600 clamp(16px,4.6vw,24px) var(--f);cursor:pointer;box-shadow:inset -1px -1px 0 rgba(255,255,255,.07);transition:background .12s}
+.sdg button:nth-child(9n+3),.sdg button:nth-child(9n+6){box-shadow:inset -1.5px -1px 0 rgba(255,255,255,.28)}
+.sdg button:nth-child(n+19):nth-child(-n+27),.sdg button:nth-child(n+46):nth-child(-n+54){box-shadow:inset -1px -1.5px 0 rgba(255,255,255,.28)}
+.sdg button:nth-child(21),.sdg button:nth-child(24),.sdg button:nth-child(48),.sdg button:nth-child(51){box-shadow:inset -1.5px -1.5px 0 rgba(255,255,255,.28)}
+.sdg button.u{color:#2997ff}.sdg button.hl{background:#151518}.sdg button.same{background:#1d2a3a}.sdg button.sel{background:#2997ff;color:#fff}.sdg button.bad{color:#ff6961}.sdg button.sel.bad{background:#ff6961;color:#fff}
+.sdg.won button{animation:pop .5s var(--ease) both}@keyframes pop{50%{transform:scale(.9)}}
+.pad{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:14px}.pad button{height:46px;border:0;border-radius:12px;background:rgba(255,255,255,.07);color:var(--ink);font:600 18px var(--f);cursor:pointer;transition:background .15s}.pad button:hover{background:rgba(255,255,255,.14)}.pad button.done{opacity:.25}
+.sdf{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}.sdf span{font-size:14.5px;color:var(--mute)}.sdnew{height:42px;padding:0 18px;border:0;border-radius:999px;background:#f5f5f7;color:#000;font:600 14px var(--f);cursor:pointer;transition:transform .2s var(--ease)}.sdnew:active{transform:scale(.96)}
+@media(max-width:600px){.sdk{padding:14px;border-radius:24px}.pad{grid-template-columns:repeat(5,1fr)}.pad button{height:44px}}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Prasanna Bhatkar","url":"https://www.prasanna.lol/","image":"https://www.prasanna.lol/prasanna.jpg","jobTitle":"Risk Analyst","worksFor":{"@type":"Organization","name":"Dodo Payments","url":"https://www.dodopayments.com"},"founder":[{"@type":"Organization","name":"Moluscca","url":"https://www.moluscca.com"}],"alumniOf":{"@type":"Organization","name":"Institute of Actuaries of India"},"address":{"@type":"PostalAddress","addressLocality":"Bangalore","addressCountry":"IN"},"knowsAbout":["Actuarial science","Risk analysis","Merchant risk","Parametric insurance","Climate risk","Insurance pricing"],"award":["Best Paper, ACTCON 2025","Best Paper, ACTSUM 2024"],"sameAs":["https://www.linkedin.com/in/prasanna-bhatkar-/","https://github.com/Exolotis","https://www.instagram.com/prasanna_bhatkar/","https://www.moluscca.com","https://templates.moluscca.com"]}</script>
 </head>
@@ -351,6 +365,19 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   </div>
 </section>
 
+<section id="play">
+  <div class="wrap">
+    <div class="kick rv">Take a break</div>
+    <h2 class="rv">A fresh Sudoku, <span class="g">every single time.</span></h2>
+    <p class="sub rv">Built in your browser when you press play. Bands, rows, columns and digits are shuffled at random, then a solver makes sure there's exactly one answer.</p>
+    <div class="sdk rv">
+      <div class="sdh"><div class="seg" id="sdlv" role="tablist" aria-label="Difficulty"><button type="button" data-l="38" class="on">Easy</button><button type="button" data-l="46">Medium</button><button type="button" data-l="53">Hard</button></div><span class="sdt" id="sdt">0:00</span></div>
+      <div class="sdg" id="sdg" role="grid" aria-label="Sudoku board"></div>
+      <div class="pad" id="sdp"></div>
+      <div class="sdf"><span id="sdm">Pick a cell, then a number.</span><button type="button" class="sdnew" id="sdn">New puzzle</button></div>
+    </div>
+  </div>
+</section>
 <section id="startups">
   <div class="wrap">
     <div class="kick rv">Startup directory</div>
@@ -433,7 +460,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   b.addEventListener('click', open); m.querySelector('.x').addEventListener('click', close);
   m.addEventListener('click', e => { if (e.target === m) close(); }); addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   const hero = document.getElementById('top'), ct = document.getElementById('contact');
-  const upd = () => { const h = hero.getBoundingClientRect().bottom < 0, c = ct.getBoundingClientRect().top < innerHeight * .8; b.classList.toggle('on', h && !c); };
+  const upd = () => { const pl = document.getElementById('play').getBoundingClientRect(), h = hero.getBoundingClientRect().bottom < 0, c = ct.getBoundingClientRect().top < innerHeight * .8 || (pl.top < innerHeight && pl.bottom > 0); b.classList.toggle('on', h && !c); };
   addEventListener('scroll', upd, { passive: true }); upd();
 })();
 </script>
@@ -476,6 +503,48 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 document.addEventListener('click', e => { const a = e.target.closest('a[href^="#"]'); if (!a) return; const id = a.getAttribute('href').slice(1), t = id ? document.getElementById(id) : document.body;
   if (!t) return; e.preventDefault(); t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
 if (location.hash) { const t = document.getElementById(location.hash.slice(1)); history.replaceState(null, '', location.pathname + location.search); if (t) addEventListener('load', () => t.scrollIntoView()); }
+</script>
+<script>
+(() => {
+  /* every puzzle is new: random solved grid from a shuffled base pattern, then holes dug while a solver keeps the answer unique */
+  const rnd = n => Math.floor(Math.random() * n), shuf = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const order = () => [].concat(...shuf([0, 1, 2]).map(g => shuf([0, 1, 2]).map(k => g * 3 + k)));
+  const full = () => { const R = order(), C = order(), N = shuf([1, 2, 3, 4, 5, 6, 7, 8, 9]), out = [];
+    for (const r of R) for (const c of C) out.push(N[(3 * (r % 3) + Math.floor(r / 3) + c) % 9]); return out; };
+  const cand = (a, i) => { const r = Math.floor(i / 9), c = i % 9, br = r - r % 3, bc = c - c % 3; let u = 0;
+    for (let k = 0; k < 9; k++) u |= (1 << a[r * 9 + k]) | (1 << a[k * 9 + c]) | (1 << a[(br + Math.floor(k / 3)) * 9 + bc + k % 3]); return ~u & 0x3FE; };
+  const count = g => { const a = g.slice(); let n = 0;
+    const go = () => { if (n > 1) return; let b = -1, bm = 0, bc = 10;
+      for (let i = 0; i < 81; i++) if (!a[i]) { const m = cand(a, i); let c = 0; for (let d = 1; d <= 9; d++) if (m & (1 << d)) c++; if (c < bc) { bc = c; b = i; bm = m; if (!c) return; } }
+      if (b < 0) { n++; return; } for (let d = 1; d <= 9 && n < 2; d++) if (bm & (1 << d)) { a[b] = d; go(); } a[b] = 0; };
+    go(); return n; };
+  const make = holes => { const sol = full(), p = sol.slice(); let h = 0;
+    for (const i of shuf([...Array(81).keys()])) { if (h >= holes) break; const v = p[i]; p[i] = 0; if (count(p) === 1) h++; else p[i] = v; } return { sol, p }; };
+
+  const G = document.getElementById('sdg'), P = document.getElementById('sdp'), T = document.getElementById('sdt'), M = document.getElementById('sdm');
+  let sol, giv, cur, sel = -1, t0 = 0, tick, holes = 38, done = false;
+  for (let i = 0; i < 81; i++) { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'gridcell'); b.onclick = () => { sel = i; draw(); }; G.appendChild(b); }
+  for (let d = 1; d <= 10; d++) { const b = document.createElement('button'); b.type = 'button'; b.textContent = d === 10 ? '⌫' : d; b.setAttribute('aria-label', d === 10 ? 'Erase' : 'Number ' + d); b.onclick = () => put(d === 10 ? 0 : d); P.appendChild(b); }
+  const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const draw = () => { const cells = G.children, sv = sel >= 0 ? cur[sel] : 0, sr = Math.floor(sel / 9), sc = sel % 9;
+    for (let i = 0; i < 81; i++) { const b = cells[i], r = Math.floor(i / 9), c = i % 9, v = cur[i];
+      b.textContent = v || ''; b.className = '';
+      if (!giv[i] && v) b.classList.add('u'); if (!giv[i] && v && v !== sol[i]) b.classList.add('bad');
+      if (sel >= 0) { if (i === sel) b.classList.add('sel'); else if (sv && v === sv) b.classList.add('same');
+        else if (r === sr || c === sc || (Math.floor(r / 3) === Math.floor(sr / 3) && Math.floor(c / 3) === Math.floor(sc / 3))) b.classList.add('hl'); }
+      b.setAttribute('aria-label', 'Row ' + (r + 1) + ', column ' + (c + 1) + (v ? ', ' + v : ', empty')); }
+    for (let d = 1; d <= 9; d++) P.children[d - 1].classList.toggle('done', cur.filter((v, i) => v === d && v === sol[i]).length === 9); };
+  const put = v => { if (done || sel < 0 || giv[sel]) return; cur[sel] = v; draw();
+    if (cur.every((x, i) => x === sol[i])) { done = true; clearInterval(tick); G.classList.add('won'); M.textContent = 'Solved in ' + fmt(Math.round((Date.now() - t0) / 1000)) + '. Nice.'; } };
+  const start = () => { const z = make(holes); sol = z.sol; giv = z.p.map(Boolean); cur = z.p.slice(); sel = -1; done = false; G.classList.remove('won');
+    M.textContent = 'Pick a cell, then a number.'; t0 = Date.now(); clearInterval(tick); T.textContent = '0:00'; tick = setInterval(() => { T.textContent = fmt(Math.round((Date.now() - t0) / 1000)); }, 1000); draw(); };
+  document.getElementById('sdn').onclick = start;
+  document.querySelectorAll('#sdlv button').forEach(b => b.onclick = () => { document.querySelectorAll('#sdlv button').forEach(x => x.classList.toggle('on', x === b)); holes = +b.dataset.l; start(); });
+  G.addEventListener('keydown', e => { if (/^[1-9]$/.test(e.key)) put(+e.key); else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') put(0);
+    else { const mv = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }[e.key]; if (mv && sel >= 0) { e.preventDefault(); sel = (sel + mv + 81) % 81; draw(); G.children[sel].focus(); } } });
+  /* build the first puzzle only when the section comes into view */
+  new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { start(); o.disconnect(); } }, { rootMargin: '400px' }).observe(G);
+})();
 </script>
 </body>
 </html>
