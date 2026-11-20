@@ -86,8 +86,8 @@
   const intro = () => { const g = G[cur]; q('.mgn').textContent = g.name; q('.mghow').textContent = g.how; q('.mgt').textContent = '1:00'; q('.mgbar i').style.transform = 'scaleX(1)';
     q('.mgbest').textContent = best(cur) ? 'Your best: ' + best(cur) : ''; q('.mgintro').hidden = false; q('.mgplay').hidden = true; q('.mgend').hidden = true; };
   const next = () => { const g = G[cur]; st.q = g.q(); const Q = st.q;
-    if (g.input) { q('.mgq').textContent = Q.t; inp.value = ''; inp.hidden = false; q('.mgch').hidden = true; }
-    else { q('.mgq').textContent = Q.t || 'Which is bigger?'; inp.hidden = true; q('.mgch').hidden = false; chs[0].textContent = Q.l; chs[1].textContent = Q.r; } };
+    if (g.input) { q('.mgq').textContent = Q.t; q('.mgq').classList.remove('sm'); inp.value = ''; inp.hidden = false; q('.mgch').hidden = true; }
+    else { q('.mgq').textContent = Q.t || 'Which is bigger?'; q('.mgq').classList.toggle('sm', !Q.t); inp.hidden = true; q('.mgch').hidden = false; chs[0].textContent = Q.l; chs[1].textContent = Q.r; } };
   const score = d => { st.s += d; q('.mgsc b').textContent = st.s; };
   const flash = ok => { const e = q('.mgq'); e.classList.remove('ok', 'no'); void e.offsetWidth; e.classList.add(ok ? 'ok' : 'no'); };
   const end = () => { clearInterval(st.tm); const s = st.s, k = cur; st = null; q('.mgplay').hidden = true; const E = q('.mgend'); E.hidden = false;
@@ -112,12 +112,14 @@
   for (let i = 0; i < 30; i++) wg.appendChild(document.createElement('span'));
   ['qwertyuiop', 'asdfghjkl', '+zxcvbnm-'].forEach(r => { const row = document.createElement('div'); [...r].forEach(ch => { const b = document.createElement('button'); b.type = 'button';
     b.dataset.k = ch === '+' ? 'Enter' : ch === '-' ? 'Backspace' : ch; b.textContent = ch === '+' ? 'Enter' : ch === '-' ? '⌫' : ch; if (ch === '+' || ch === '-') b.className = 'wide'; row.appendChild(b); }); wk.appendChild(row); });
-  const wStart = () => { W.ans = pick(WORDS); W.row = 0; W.col = 0; W.done = false; W.t0 = 0; wmsg.textContent = 'Guess the five-letter word. Six tries.'; wd.querySelector('.wdend').innerHTML = '';
+  const day = Math.floor((Date.now() + 19800000) / 86400000), dailyWord = WORDS[(day * 7919 + 13) % WORDS.length];
+  const wStart = practice => { W.practice = !!practice; W.ans = practice ? pick(WORDS) : dailyWord; wd.querySelector('.sdh b').textContent = practice ? 'Wordle · Practice' : 'Wordle · Today'; W.row = 0; W.col = 0; W.done = false; W.t0 = 0; wmsg.textContent = practice ? 'Practice word. Not on the leaderboard.' : "Today's word. Same for everyone, one go a day."; wd.querySelector('.wdend').innerHTML = '';
     wg.querySelectorAll('span').forEach(s => { s.textContent = ''; s.className = ''; }); wk.querySelectorAll('button').forEach(b => b.className = b.className.replace(/\b(g|y|x)\b/g, '').trim());
-    clearInterval(W.tm); wd.querySelector('.wdt').textContent = '0:00'; };
+    clearInterval(W.tm); wd.querySelector('.wdt').textContent = '0:00';
+    const done = !practice && store.get('wd-' + day); if (done) { W.done = true; wmsg.textContent = 'You played today' + (done === 'x' ? '. Tomorrow brings a new word.' : ': ' + done + '. New word tomorrow.'); const E = wd.querySelector('.wdend'); E.innerHTML = '<button type="button" class="sdnew">Practice with a random word</button>'; E.firstChild.onclick = () => wStart(true); } };
   const cell = (r, c) => wg.children[r * 5 + c];
   const wKey = k => { if (W.done || !W.ans) return;
-    if (!W.t0) { W.t0 = Date.now(); W.tm = setInterval(() => { wd.querySelector('.wdt').textContent = fmt(Math.round((Date.now() - W.t0) / 1000)); }, 1000); }
+    if (!W.t0 && /^[a-z]$/i.test(k)) { W.t0 = Date.now(); W.tm = setInterval(() => { wd.querySelector('.wdt').textContent = fmt(Math.round((Date.now() - W.t0) / 1000)); }, 1000); }
     if (/^[a-z]$/i.test(k) && W.col < 5) { const c = cell(W.row, W.col++); c.textContent = k.toLowerCase(); c.className = 'f'; return; }
     if (k === 'Backspace' && W.col > 0) { const c = cell(W.row, --W.col); c.textContent = ''; c.className = ''; return; }
     if (k !== 'Enter') return;
@@ -130,8 +132,9 @@
     const win = guess === W.ans; W.row++; W.col = 0;
     if (win || W.row === 6) { W.done = true; clearInterval(W.tm); const secs = Math.min(999, Math.max(1, Math.round((Date.now() - W.t0) / 1000))), E = wd.querySelector('.wdend');
       setTimeout(() => { wmsg.textContent = win ? (W.row === 1 ? 'First try. Unreal.' : 'Got it in ' + W.row + ' tries, ' + fmt(secs) + '.') : 'The word was ' + W.ans.toUpperCase() + '.';
-        E.innerHTML = '<button type="button" class="sdnew">New word</button>'; E.firstChild.onclick = wStart;
-        if (win) { const sc = W.row * 1000 + secs; log('wordle', sc); offer(E, 'wordle', sc, ''); } }, 700); }
+        E.innerHTML = '<button type="button" class="sdnew">' + (W.practice ? 'Another practice word' : 'Practice with a random word') + '</button>'; E.firstChild.onclick = () => wStart(true);
+        if (!W.practice) store.set('wd-' + day, win ? W.row + (W.row > 1 ? ' tries' : ' try') + ', ' + fmt(secs) : 'x');
+        if (win && !W.practice) { const sc = W.row * 1000 + secs; log('wordle', sc); offer(E, 'wordle', sc, ''); } }, 700); }
     else wmsg.textContent = ''; };
   wk.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) wKey(b.dataset.k); });
   document.addEventListener('keydown', e => { if (wd.hidden || e.ctrlKey || e.metaKey || e.altKey || /input|textarea/i.test((e.target.tagName || ''))) return;
@@ -159,6 +162,6 @@
   bar.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     if (st) { clearInterval(st.tm); st = null; }
     bar.querySelectorAll('[data-g]').forEach(x => x.setAttribute('aria-selected', x === b)); cur = b.dataset.g; b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; wd.hidden = cur !== 'wordle'; mm.hidden = cur !== 'memory'; if (G[cur]) intro(); if (cur === 'wordle' && !W.ans) wStart(); if (cur === 'memory' && !M.cards) mStart(); if (!lb.hidden) showBoard(); });
+    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; wd.hidden = cur !== 'wordle'; mm.hidden = cur !== 'memory'; if (G[cur]) intro(); if (cur === 'wordle' && !W.ans) wStart(false); if (cur === 'memory' && !M.cards) mStart(); if (!lb.hidden) showBoard(); });
   document.querySelectorAll('#sdlv button').forEach(b => b.addEventListener('click', () => { if (!lb.hidden) setTimeout(showBoard, 0); }));
 })();
