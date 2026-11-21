@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script>if(/[?&]embed=games/.test(location.search))document.documentElement.classList.add("embed-games")</script>
-<style>html.embed-games body>*:not(#play){display:none!important}html.embed-games #play{display:block!important;padding-top:28px;min-height:100vh}html.embed-games #play .rv{opacity:1!important;transform:none!important}</style>
+<script>(function(){if(!/[?&]embed=games/.test(location.search))return;var h=document.documentElement;h.setAttribute("data-embed","games");document.addEventListener("DOMContentLoaded",function(){h.setAttribute("data-embed","games");var p=document.getElementById("play");if(p)p.scrollIntoView();});})()</script>
+<style>html[data-embed=games] body>*:not(#play){display:none!important}html[data-embed=games] #play{display:block!important;padding-top:28px;min-height:100vh}html[data-embed=games] #play .rv{opacity:1!important;transform:none!important}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Prasanna Bhatkar | Risk Analyst, Actuarial Science, Founder of Moluscca</title>
