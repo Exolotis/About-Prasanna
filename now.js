@@ -91,7 +91,7 @@
       if (!v || v.none || !/^[A-Za-z0-9_-]{11}$/.test(v.id)) return show('.nwyt', false);
       $('.nwyt a').href = 'https://www.youtube.com/watch?v=' + v.id;
       $('.nwyt .nwthumb').innerHTML = '<img src="https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg" alt="" loading="lazy">';
-      $('.nwyt .nwvid b').textContent = v.title; $('.nwyt .nwvid small').textContent = 'Moluscca on YouTube · ' + ago(v.published);
+      $('.nwyt .nwvid b').textContent = v.title; $('.nwyt .nwvid small').textContent = 'Exolotis on YouTube · ' + ago(v.published);
       show('.nwyt', true);
     } catch (e) { show('.nwyt', false); }
     layout();

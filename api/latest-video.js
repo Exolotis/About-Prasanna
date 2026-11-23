@@ -1,6 +1,6 @@
-// The newest public video on the Moluscca YouTube channel, for the "Right now" section.
+// The newest public video on the Exolotis YouTube channel, for the "Right now" section.
 // Reads YouTube's public feed (no key needed) and keeps the answer for 30 minutes.
-const CHANNEL_ID = 'UCEqi6zaDYrEzrMCACyjeCyw';   // youtube.com/@Moluscca
+const CHANNEL_ID = 'UCggPySm-JfIzqzjnvj5Av2w';   // youtube.com/@exolotis
 
 const pick = (xml, tag) => { const m = xml.match(new RegExp('<' + tag + '>([^<]*)</' + tag + '>')); return m ? m[1] : ''; };
 const unescape = t => t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
