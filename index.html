@@ -336,6 +336,56 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .grbar em{position:absolute;top:0;bottom:0;background:rgba(48,209,88,.55)}
 .grbar u{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;border-radius:2px;background:#f5f5f7;box-shadow:0 0 8px #fff}
 @media(max-width:720px){.grdex{grid-template-columns:1fr 1fr}.grstage{overflow:visible}.grbox{position:static;margin-top:10px;font-size:13px;padding:12px}.grwild i{width:42px;height:42px;font-size:20px}}
+
+/* Right now */
+.nwgrid{display:grid;grid-template-columns:1.25fr 1fr;grid-template-rows:auto auto;gap:14px;margin-top:56px}
+.nwcard{position:relative;border-radius:30px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);padding:26px;overflow:hidden}
+.nwsky{grid-row:span 2;min-height:340px;display:flex;align-items:flex-end;color:#fff;transition:background 1.2s}
+.nwsky[data-phase=night]{background:linear-gradient(180deg,#0a0f24,#1b2452 75%)}
+.nwsky[data-phase=morning]{background:linear-gradient(180deg,#7fa6d8,#f2b48c 80%)}
+.nwsky[data-phase=day]{background:linear-gradient(180deg,#3f7fcf,#a6cff3 85%)}
+.nwsky[data-phase=evening]{background:linear-gradient(180deg,#27285c,#c4607a 60%,#f19a62)}
+.nwsky[data-cloudy="1"]::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(120,130,150,.35),transparent 70%);pointer-events:none}
+.nwstars{position:absolute;inset:0;opacity:0;transition:opacity 1.2s}
+.nwsky[data-phase=night] .nwstars{opacity:1}.nwsky[data-phase=evening] .nwstars{opacity:.35}
+.nwstars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.7;animation:nwtw 4s ease-in-out infinite}
+.nwstars i.b{width:3px;height:3px}
+@keyframes nwtw{50%{opacity:.2}}
+.nworb{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;transition:left 2s,top 2s}
+.nworb.sun{background:radial-gradient(circle,#fff6d6,#ffd36b 60%);box-shadow:0 0 50px 12px rgba(255,214,107,.45)}
+.nworb.moon{background:#eef1fb;box-shadow:0 0 40px 8px rgba(220,228,255,.25)}
+.nworb.moon::after{content:"";position:absolute;width:44px;height:44px;border-radius:50%;top:-6px;left:14px;background:#141a3a;opacity:.9}
+.nwsky[data-phase=night] .nworb.moon::after{background:#0e1430}
+.nwrain{position:absolute;inset:0;opacity:0;background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(255,255,255,.18) 14px 15px);background-size:200% 200%;animation:nwrain .6s linear infinite}
+.nwsky[data-wet="1"] .nwrain{opacity:.6}
+@keyframes nwrain{to{background-position:-30px 60px}}
+.nwhills{position:absolute;left:0;right:0;bottom:0;width:100%;height:42%}
+.nwhills .h1{fill:rgba(0,0,0,.28)}.nwhills .h2{fill:rgba(0,0,0,.42)}
+.nwclock{position:relative;z-index:1}
+.nwphase{display:block;font:600 12px var(--f);letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.nwtime{font:600 clamp(44px,6vw,64px)/1 var(--f);letter-spacing:-.04em;margin-top:6px}
+.nwtime small{font-size:.38em;letter-spacing:0;margin-left:6px;opacity:.85}
+.nwclock p{margin:10px 0 0;font:500 14px var(--f);opacity:.9}
+.nwwx:not(:empty)::before{content:"· "}
+.nwhead{display:flex;align-items:center;gap:8px;font:600 12.5px var(--f);color:var(--mute);letter-spacing:.02em}
+.nwhead em{font-style:normal;color:var(--faint)}
+.nwdot{width:8px;height:8px;border-radius:50%;background:var(--faint)}.nwdot.on{background:#30d158;box-shadow:0 0 10px #30d158}
+.nwbuild b{display:block;margin-top:14px;font:600 21px var(--f);letter-spacing:-.02em}
+.nwbuild p{margin:8px 0 0;color:var(--mute);font-size:15px;line-height:1.55}
+.nwtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.nwtags span{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--ink2);font:600 12px var(--f)}
+.nwmusic[hidden]{display:none}
+.nwsong{display:flex;align-items:center;gap:14px;margin-top:14px;color:inherit;text-decoration:none}
+.nwsong img,.nwart0{flex:none;width:62px;height:62px;border-radius:14px;object-fit:cover;background:rgba(255,255,255,.08);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.nwtxt{min-width:0;flex:1}.nwtxt b{display:block;font:600 17px var(--f);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nwtxt small{display:block;margin-top:3px;color:var(--mute);font:500 14px var(--f);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nwsong:hover b{text-decoration:underline}
+.nweq{display:flex;align-items:flex-end;gap:3px;height:18px}.nweq i{width:3px;background:#30d158;border-radius:2px;animation:nweq 1s ease-in-out infinite}
+.nweq i:nth-child(2){animation-delay:-.3s}.nweq i:nth-child(3){animation-delay:-.6s}.nweq i:nth-child(4){animation-delay:-.15s}
+@keyframes nweq{0%,100%{height:30%}50%{height:100%}}
+.nwbar{height:4px;margin-top:16px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}.nwbar i{display:block;height:100%;width:0;background:#f5f5f7;border-radius:999px;transition:width 1s linear}
+.nwnums{display:flex;justify-content:space-between;margin-top:6px;color:var(--faint);font:500 11.5px var(--f)}
+#now.nwsolo .nwbuild{grid-row:span 2}
+@media(max-width:900px){.nwgrid{grid-template-columns:1fr}.nwsky{grid-row:auto;min-height:260px}#now.nwsolo .nwbuild{grid-row:auto}}
+@media(prefers-reduced-motion:reduce){.nwstars i,.nwrain,.nweq i{animation:none}}
 </style>
 </head>
 <body>
@@ -517,6 +567,28 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   </div>
 </section>
 
+<section id="now">
+  <div class="wrap">
+    <div class="kick rv">Right now</div>
+    <h2 class="rv">Live from Pune. <span class="g">Updated as it happens.</span></h2>
+    <div class="nwgrid rv">
+      <div class="nwcard nwsky" data-phase="night" aria-hidden="false">
+        <div class="nwstars" aria-hidden="true"></div>
+        <div class="nworb moon" aria-hidden="true"></div>
+        <div class="nwrain" aria-hidden="true"></div>
+        <svg class="nwhills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path class="h1" d="M0 70 C60 40 110 50 160 62 S260 30 320 48 S380 60 400 52 V120 H0Z"/><path class="h2" d="M0 92 C70 70 130 84 200 80 S320 64 400 78 V120 H0Z"/></svg>
+        <div class="nwclock"><span class="nwphase">Night</span><div class="nwtime">12:00<small>AM</small></div><p>Pune, India · IST <span class="nwwx"></span></p></div>
+      </div>
+      <div class="nwcard nwbuild">
+        <div class="nwhead"><span class="nwdot on"></span>Building</div>
+        <b>The Moluscca API</b>
+        <p>Risk maths and checked India climate and economic data, in one request. In team beta, launching soon.</p>
+        <div class="nwtags"><span>Node</span><span>Supabase</span><span>Render</span></div>
+      </div>
+      <div class="nwcard nwmusic" hidden></div>
+    </div>
+  </div>
+</section>
 <section id="play">
   <div class="wrap">
     <div class="kick rv">Take a break</div>
@@ -723,6 +795,7 @@ if (location.hash) { const t = document.getElementById(location.hash.slice(1)); 
   new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { start(); o.disconnect(); } }, { rootMargin: '400px' }).observe(G);
 })();
 </script>
+<script src="/now.js" defer></script>
 <script src="/board-games.js" defer></script>
 <script src="/mgr.js" defer></script>
 <script src="/games.js" defer></script>
