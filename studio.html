@@ -54,8 +54,9 @@ a{color:#0a84ff}
 
   <section id="signin" class="card">
     <h2>Sign in</h2>
-    <div id="step1"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@moluscca.com">
-      <div class="bar"><button id="send">Email me a code</button><span class="msg" id="m1"></span></div></div>
+    <div id="step1"><label for="email">Email</label><input id="email" type="email" autocomplete="username" placeholder="you@moluscca.com">
+      <label for="pass">Password <span class="hint" style="font-weight:500">(leave empty to get a code by email instead)</span></label><input id="pass" type="password" autocomplete="current-password">
+      <div class="bar"><button id="login">Sign in with password</button><button class="ghost" id="send">Email me a code</button><span class="msg" id="m1"></span></div></div>
     <div id="step2" hidden><label for="code">Code from the email</label><input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" maxlength="10">
       <div class="bar"><button id="verify">Sign in</button><button class="ghost" id="back">Use another email</button><span class="msg" id="m2"></span></div></div>
   </section>
@@ -111,6 +112,11 @@ a{color:#0a84ff}
       <section class="card"><h2>Your photos</h2><div class="photos" id="photos"></div></section>
     </div>
 
+    <section class="card" style="margin-top:24px"><h2>Your password</h2>
+      <p class="hint" style="margin:0">Set one to sign in without waiting for an email. At least 10 characters.</p>
+      <div class="two"><div><label for="np1">New password</label><input id="np1" type="password" autocomplete="new-password" minlength="10"></div>
+        <div><label for="np2">Type it again</label><input id="np2" type="password" autocomplete="new-password" minlength="10"></div></div>
+      <div class="bar"><button class="ghost" id="setpass">Set password</button><span class="msg" id="m6"></span></div></section>
     <div class="bar"><button class="ghost" id="out">Sign out</button></div>
   </div>
   <input type="file" id="pick" accept="image/*" hidden>
@@ -136,6 +142,27 @@ a{color:#0a84ff}
     });
   };
   $('back').onclick = function () { $('step2').hidden = true; $('step1').hidden = false; };
+  $('login').onclick = function () {
+    var email = $('email').value.trim(), pass = $('pass').value; if (!email || !pass) return say($('m1'), 'Type your email and password, or use Email me a code.', 'bad');
+    $('login').disabled = true; say($('m1'), 'Signing in…');
+    db.auth.signInWithPassword({ email: email, password: pass }).then(function (r) {
+      $('login').disabled = false; $('pass').value = '';
+      if (r.error) return say($('m1'), 'Wrong email or password. You can use Email me a code instead.', 'bad');
+      start();
+    });
+  };
+  $('pass').onkeydown = function (e) { if (e.key === 'Enter') $('login').click(); };
+  $('setpass').onclick = function () {
+    var a = $('np1').value, b = $('np2').value;
+    if (a.length < 10) return say($('m6'), 'Use at least 10 characters.', 'bad');
+    if (a !== b) return say($('m6'), 'The two passwords do not match.', 'bad');
+    $('setpass').disabled = true; say($('m6'), 'Saving…');
+    db.auth.updateUser({ password: a }).then(function (r) {
+      $('setpass').disabled = false; $('np1').value = ''; $('np2').value = '';
+      if (r.error) return say($('m6'), r.error.message + (/reauth|nonce/i.test(r.error.message) ? ' Sign out, sign in with an email code, then try again.' : ''), 'bad');
+      say($('m6'), 'Password set. Next time, sign in with it.', 'ok');
+    });
+  };
   $('verify').onclick = function () {
     var code = $('code').value.replace(/\s/g, ''); if (!code) return; $('verify').disabled = true; say($('m2'), 'Checking…');
     db.auth.verifyOtp({ email: sentTo, token: code, type: 'email' }).then(function (r) { $('verify').disabled = false; if (r.error) return say($('m2'), r.error.message, 'bad'); start(); });
