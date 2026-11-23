@@ -43,13 +43,25 @@
   const yOf = p => top + p * (bottom - top);
 
   /* ---------- state ---------- */
-  let heroY = yOf(progress()), trail = [], cleared = LEVELS.map(() => false), hop = LEVELS.map(() => 0), opened = !!store.get('pixel-secret'), glow = 0, pillTimer;
+  let heroY = yOf(progress()), trail = [], ripples = [], cleared = LEVELS.map(() => false), hop = LEVELS.map(() => 0), opened = !!store.get('pixel-secret'), glow = 0, pillTimer;
   marks.forEach((m, i) => { if (progress() >= m) cleared[i] = true; });          // already passed when the page loads: no fuss
 
-  const say = (text, sub, y) => {
+  /* ---------- clickable levels: an invisible button over each dot ---------- */
+  const hits = LEVELS.map((l, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'prb'; b.setAttribute('aria-label', 'Go to ' + l.name);
+    b.onclick = () => l.el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    b.onmouseenter = () => say(l.name, cleared[i] ? 'cleared' : 'level ' + (i + 1), yOf(marks[i]), true);
+    b.onmouseleave = () => pill.classList.remove('on');
+    document.body.append(b); return b;
+  });
+  const placeHits = () => hits.forEach((b, i) => { b.style.top = (yOf(marks[i]) - 14) + 'px'; b.style.right = (W - trackX - 14 + (phone ? 0 : 6)) + 'px'; b.style.width = (phone ? 28 : 40) + 'px'; });
+  css.textContent += '.prb{position:fixed;z-index:42;height:28px;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}.prb:focus-visible{outline:2px solid #0a84ff;border-radius:8px}';
+  placeHits();
+
+  const say = (text, sub, y, stay) => {
     pill.innerHTML = '<i></i>' + text + (sub ? ' <small>' + sub + '</small>' : '');
     pill.style.top = Math.max(10, Math.min(innerHeight - 44, y - 17)) + 'px'; pill.classList.add('on');
-    clearTimeout(pillTimer); pillTimer = setTimeout(() => pill.classList.remove('on'), 1800);
+    clearTimeout(pillTimer); if (!stay) pillTimer = setTimeout(() => pill.classList.remove('on'), 1800);
   };
   const unlock = () => {
     opened = true; glow = 1; store.set('pixel-secret', '1');
@@ -78,12 +90,19 @@
     trail = trail.filter(t => (t.life -= .05) > 0).slice(-16);
 
     marks.forEach((m, i) => {
-      if (!cleared[i] && p >= m) { cleared[i] = true; hop[i] = 1; say('Level ' + (i + 1) + ' cleared', LEVELS[i].name, yOf(m)); }
+      if (!cleared[i] && p >= m) { cleared[i] = true; hop[i] = 1; ripples.push({ y: yOf(m), t: 0 }); say('Level ' + (i + 1) + ' cleared', LEVELS[i].name, yOf(m)); }
       if (cleared[i] && p < m - .02) cleared[i] = false;                 // scroll back up and you can clear it again
     });
     if (!opened && p > .985) unlock();
 
+    cv.style.opacity = p < .02 ? .45 : 1;                                // quieter while you are still on the intro
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0); ctx.clearRect(0, 0, W, H);
+    // counter at the top of the line, like 2/6
+    ctx.fillStyle = 'rgba(245,245,247,.55)'; ctx.font = '600 10px "Albert Sans", sans-serif'; ctx.textAlign = phone ? 'right' : 'center';
+    ctx.fillText(cleared.filter(Boolean).length + '/' + LEVELS.length, phone ? W - 3 : trackX, top - 12); ctx.textAlign = 'start';
+    // rings that spread out from a dot when it is cleared
+    ripples = ripples.filter(r => (r.t += .03) < 1);
+    ripples.forEach(r => { ctx.strokeStyle = 'rgba(48,209,88,' + (1 - r.t).toFixed(2) + ')'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(trackX, r.y, 3 + r.t * 14, 0, 7); ctx.stroke(); });
     // the hairline track, brighter above the block (the part you have travelled)
     ctx.fillStyle = 'rgba(245,245,247,.08)'; ctx.fillRect(trackX - .5, top, 1, bottom - top);
     ctx.fillStyle = 'rgba(245,245,247,.32)'; ctx.fillRect(trackX - .5, top, 1, Math.max(0, heroY - top));
@@ -101,13 +120,15 @@
     // the trail, then the block on top
     trail.forEach(t => rounded(trackX - 2, t.y - 2, 4, 4, 1, 'rgba(245,245,247,' + (t.life * .35).toFixed(2) + ')'));
     ctx.shadowColor = 'rgba(245,245,247,.6)'; ctx.shadowBlur = 10;
-    rounded(trackX - 4.5, heroY - 4.5, 9, 9, 2.5, WHITE);
+    const speed = Math.min(1, Math.abs(target - heroY) / 60);           // stretches a little while falling, settles when it stops
+    const bw = 9 - speed * 2.5, bh = 9 + speed * 6;
+    rounded(trackX - bw / 2, heroY - bh / 2, bw, bh, 2.5, WHITE);
     ctx.shadowBlur = 0;
     requestAnimationFrame(frame);
   };
 
-  addEventListener('resize', () => { size(); marks = levelAt(); });
-  addEventListener('load', () => { marks = levelAt(); });
-  setTimeout(() => { marks = levelAt(); }, 1500);                        // images and games change the page height
+  addEventListener('resize', () => { size(); marks = levelAt(); placeHits(); });
+  addEventListener('load', () => { marks = levelAt(); placeHits(); });
+  setTimeout(() => { marks = levelAt(); placeHits(); }, 1500);                       // images and games change the page height
   requestAnimationFrame(frame);
 })();
