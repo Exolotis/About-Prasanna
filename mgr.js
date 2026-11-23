@@ -1,7 +1,8 @@
 /* Moluscca Global Revolution: a small top-down adventure that opens in an overlay.
    You are an octopus. Walk the town, step into tall grass to meet wild Moluscca things,
    catch them with a timing bar, and fill the Molusdex. Buildings link to the real products.
-   Map tiles are Kenney's Tiny Town pack (CC0, kenney.nl). The octopus is our own pixel art. */
+   Map tiles are Kenney's Tiny Town pack (CC0, kenney.nl). Music is "Town" by Aureolus_Omicron (CC0, opengameart.org).
+   The octopus and the sound effects are our own. */
 (() => {
   const TILE = 32, VIEW_W = 15, VIEW_H = 11;           // the camera shows 15 x 11 tiles
   const MAP = [                                         // . grass  , tall grass  T tree  ~ bushes  = path  F flowers
@@ -66,6 +67,15 @@
       hp.type = 'highpass'; hp.frequency.value = 2200; gain.gain.value = .07; src.buffer = buf; src.connect(hp).connect(gain).connect(a.destination); src.start();
     };
     const tune = (notes, gap, len, wave, vol) => notes.forEach((f, i) => note(f, len, wave, vol, i * gap));
+    // background music: "Town" from 15 Melodic RPG Chiptunes by Aureolus_Omicron (CC0, opengameart.org).
+    // It only downloads when the game opens, plays quietly on a loop, and stops when the game closes.
+    let music = null, playing = false;
+    const musicOn = () => {
+      playing = true; if (muted) return;
+      if (!music) { music = new Audio('/mgr-town.mp3'); music.loop = true; music.volume = .35; }
+      music.play().catch(() => {});
+    };
+    const musicOff = () => { playing = false; if (music) music.pause(); };
     return {
       step: alt => note(alt ? 196 : 174, .04, 'triangle', .06),
       bump: () => note(120, .09, 'square', .03, 0, 80),
@@ -77,7 +87,11 @@
       door: () => { note(392, .09, 'triangle', .06); note(587, .16, 'triangle', .06, .09); },
       complete: () => { tune([523, 659, 784, 1047, 784, 1047, 1319], .1, .12, 'square', .03); note(1568, .5, 'triangle', .05, .72); },
       get muted() { return muted; },
-      setMuted: m => { muted = m; store.set('mgr-mute', m); if (!m) note(880, .05, 'square', .02); }
+      musicOn, musicOff,
+      setMuted: m => {
+        muted = m; store.set('mgr-mute', m);
+        if (m) { if (music) music.pause(); } else { note(880, .05, 'square', .02); if (playing) musicOn(); }
+      }
     };
   })();
   const keyboardless = matchMedia('(hover: none) and (pointer: coarse)').matches;   // phones and tablets: no keyboard
@@ -304,11 +318,11 @@
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
 
     function open() {
-      ov.hidden = false; document.documentElement.classList.add('grlock'); setCount(); running = true; cv.tabIndex = 0; cv.focus({ preventScroll: true });
+      ov.hidden = false; document.documentElement.classList.add('grlock'); setCount(); running = true; sound.musicOn(); cv.tabIndex = 0; cv.focus({ preventScroll: true });
       if (!caught.length && mode === 'walk' && frame === 0) talk('<b>Welcome to Moluscca Global Revolution!</b> You are the octopus. Walk into the tall grass to meet wild things, and visit the three buildings. Catch all six.', [{ label: "Let's go", go: done }]);
       requestAnimationFrame(loop);
     }
-    function close() { ov.hidden = true; running = false; held.clear(); document.documentElement.classList.remove('grlock'); renderDex(); }
+    function close() { ov.hidden = true; running = false; sound.musicOff(); held.clear(); document.documentElement.classList.remove('grlock'); renderDex(); }
 
     renderDex();
   }
