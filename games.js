@@ -27,7 +27,7 @@
       return { t: s.slice(0, 4).join(', ') + ', ?', a: s[4] }; } }
   };
   // [id, name, small icon, short tag shown on the game card]
-  const TABS = [['sudoku', 'Sudoku', '9', 'Timed · 3 levels'], ['wordle', 'Wordle', 'W', 'Daily word'], ['mgr', 'Moluscca GR', '◕', 'Adventure · catch 6'], ['chess', 'Chess', '♞\uFE0E', 'vs Bot · 2 players'], ['ttt', 'Tic-tac-toe', '✕', 'vs Bot · 2 players'],
+  const TABS = [['sudoku', 'Sudoku', '9', 'Timed · 3 levels'], ['wordle', 'Wordle', 'W', 'Daily word'], ['mgr', 'Moluscca GR', '◕', 'Keyboard adventure'], ['chess', 'Chess', '♞\uFE0E', 'vs Bot · 2 players'], ['ttt', 'Tic-tac-toe', '✕', 'vs Bot · 2 players'],
     ['memory', 'Memory', '◐', '8 pairs'], ['quick', 'Quick maths', '±', '60 seconds'], ['bigger', 'Bigger or smaller', '⇄', '60 seconds'], ['sequence', "What's next", '…', '60 seconds'], ['snake', 'Snake', '▚', 'Secret · unlocked']];
   const BOARD = { chess: 1, ttt: 1, snake: 1, mgr: 1 }; // board games: no leaderboard
   const secretOpen = () => { try { return !!localStorage.getItem('pixel-secret'); } catch (e) { return false; } };

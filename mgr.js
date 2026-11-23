@@ -45,6 +45,43 @@
   const store = { get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  /* ---------- sound effects: short retro blips made in the browser, no music, no files ---------- */
+  const sound = (() => {
+    let ac = null, muted = store.get('mgr-mute') === true;
+    const audio = () => { if (!ac) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; ac = new A(); } if (ac.state === 'suspended') ac.resume(); return ac; };
+    // one note: frequency, length in seconds, wave shape, volume, delay before it starts, optional slide to another frequency
+    const note = (freq, len, wave, vol, delay, slideTo) => {
+      if (muted) return; const a = audio(); if (!a) return;
+      const t = a.currentTime + (delay || 0), osc = a.createOscillator(), gain = a.createGain();
+      osc.type = wave || 'square'; osc.frequency.setValueAtTime(freq, t); if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + len);
+      gain.gain.setValueAtTime(.0001, t); gain.gain.exponentialRampToValueAtTime(vol || .04, t + .008); gain.gain.exponentialRampToValueAtTime(.0001, t + len);
+      osc.connect(gain).connect(a.destination); osc.start(t); osc.stop(t + len + .02);
+    };
+    // a short burst of soft noise, for rustling grass
+    const rustle = () => {
+      if (muted) return; const a = audio(); if (!a) return;
+      const len = .14, buf = a.createBuffer(1, Math.floor(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = a.createBufferSource(), hp = a.createBiquadFilter(), gain = a.createGain();
+      hp.type = 'highpass'; hp.frequency.value = 2200; gain.gain.value = .07; src.buffer = buf; src.connect(hp).connect(gain).connect(a.destination); src.start();
+    };
+    const tune = (notes, gap, len, wave, vol) => notes.forEach((f, i) => note(f, len, wave, vol, i * gap));
+    return {
+      step: alt => note(alt ? 196 : 174, .04, 'triangle', .06),
+      bump: () => note(120, .09, 'square', .03, 0, 80),
+      rustle,
+      blip: () => note(880, .035, 'square', .018),
+      meet: () => tune([523, 659, 784, 1047, 784, 1047], .065, .08, 'square', .03),
+      caught: () => { tune([659, 784, 988, 1319], .09, .1, 'square', .032); note(1319, .32, 'triangle', .05, .36); },
+      escaped: () => tune([440, 349, 262], .12, .16, 'triangle', .06),
+      door: () => { note(392, .09, 'triangle', .06); note(587, .16, 'triangle', .06, .09); },
+      complete: () => { tune([523, 659, 784, 1047, 784, 1047, 1319], .1, .12, 'square', .03); note(1568, .5, 'triangle', .05, .72); },
+      get muted() { return muted; },
+      setMuted: m => { muted = m; store.set('mgr-mute', m); if (!m) note(880, .05, 'square', .02); }
+    };
+  })();
+  const keyboardless = matchMedia('(hover: none) and (pointer: coarse)').matches;   // phones and tablets: no keyboard
+
   function mgr(panel) {
     let caught = store.get('mgr-dex') || [];
     /* ---------- the card in the games section: intro, Molusdex, play button ---------- */
@@ -55,17 +92,18 @@
         '<div class="grdex">' + DEX.map(d => caught.includes(d.id)
           ? '<div class="grd on"><i style="color:' + d.colour + '">' + d.mark + '</i><b>' + d.name + '</b></div>'
           : '<div class="grd"><i>?</i><b>???</b></div>').join('') + '</div>' +
-        '<div class="sdf"><span class="bgmsg">' + (caught.length === DEX.length ? 'Molusdex complete. Legend.' : 'Arrow keys or WASD. Space to talk.') + '</span><button type="button" class="sdnew" data-a="play">' + (caught.length ? 'Continue' : 'Play') + '</button></div>';
-      panel.querySelector('[data-a=play]').onclick = open;
+        (keyboardless
+          ? '<div class="sdf"><span class="bgmsg">This one needs a keyboard. Play it on a computer.</span></div>'
+          : '<div class="sdf"><span class="bgmsg">' + (caught.length === DEX.length ? 'Molusdex complete. Legend.' : 'Arrow keys or WASD to walk. Space to talk. M to mute.') + '</span><button type="button" class="sdnew" data-a="play">' + (caught.length ? 'Continue' : 'Play') + '</button></div>');
+      const play = panel.querySelector('[data-a=play]'); if (play) play.onclick = open;
     };
 
     /* ---------- the overlay with the game ---------- */
     const ov = document.createElement('div'); ov.className = 'grov'; ov.hidden = true;
     ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Moluscca Global Revolution');
     ov.innerHTML =
-      '<div class="grwin"><div class="grtop"><b>Moluscca Global Revolution</b><span class="grcount"></span><button type="button" class="grx" aria-label="Close">×</button></div>' +
-      '<div class="grstage"><canvas width="' + VIEW_W * TILE + '" height="' + VIEW_H * TILE + '"></canvas><div class="grbox" hidden></div></div>' +
-      '<div class="grpad"><button type="button" data-k="up" aria-label="Up">▲</button><button type="button" data-k="left" aria-label="Left">◀</button><button type="button" data-k="down" aria-label="Down">▼</button><button type="button" data-k="right" aria-label="Right">▶</button><button type="button" data-k="act" class="gra" aria-label="Talk or catch">A</button></div></div>';
+      '<div class="grwin"><div class="grtop"><b>Moluscca Global Revolution</b><span class="grcount"></span><button type="button" class="grmute" aria-label="Mute sound"></button><button type="button" class="grx" aria-label="Close">×</button></div>' +
+      '<div class="grstage"><canvas width="' + VIEW_W * TILE + '" height="' + VIEW_H * TILE + '"></canvas><div class="grbox" hidden></div></div><p class="grkeys">Arrow keys or WASD to walk · Space to talk and catch · M to mute · Esc to close</p></div>';
     // on the normal page it sits on top of everything; in the games pop-up only the games section is shown, so it goes there
     (document.documentElement.getAttribute('data-embed') && panel.closest('section') || document.body).appendChild(ov);
     const cv = ov.querySelector('canvas'), ctx = cv.getContext('2d'), box = ov.querySelector('.grbox'), count = ov.querySelector('.grcount');
@@ -73,14 +111,14 @@
     // player state: tile position, pixel position while walking, facing, walk animation
     const me = { x: 13, y: 18, px: 13 * TILE, py: 18 * TILE, face: 'up', moving: false, tx: 13, ty: 18, step: 0 };
     const held = new Set();
-    let mode = 'walk', running = false, frame = 0, encounter = null, marker = 0, markerDir = 1, lastDoor = '';
+    let mode = 'walk', running = false, frame = 0, encounter = null, marker = 0, markerDir = 1, lastDoor = '', lastBump = -99, steps = 0;
 
     const setCount = () => { count.textContent = 'Molusdex ' + caught.length + '/' + DEX.length; };
     const save = id => { if (!caught.includes(id)) { caught.push(id); store.set('mgr-dex', caught); } setCount(); };
 
     /* ----- dialog box ----- */
     const talk = (html, buttons) => {
-      mode = 'talk'; box.hidden = false;
+      mode = 'talk'; box.hidden = false; sound.blip();
       box.innerHTML = '<div class="grtext">' + html + '</div><div class="grbtns">' + buttons.map((b, i) => b.url
         ? '<a class="sdnew' + (i ? ' bgghost' : '') + '" href="' + b.url + '" target="_blank" rel="noopener">' + b.label + '</a>'
         : '<button type="button" class="sdnew' + (i ? ' bgghost' : '') + '" data-i="' + i + '">' + b.label + '</button>').join('') + '</div>';
@@ -90,7 +128,7 @@
     const done = () => { mode = 'walk'; box.hidden = true; box.innerHTML = ''; cv.focus({ preventScroll: true }); };
 
     const meet = d => {   // a wild thing appears: show it with a timing bar
-      encounter = d; marker = 0; markerDir = 1; mode = 'catch'; box.hidden = false;
+      encounter = d; marker = 0; markerDir = 1; mode = 'catch'; box.hidden = false; sound.meet();
       const zone = Math.round((1 - d.hard) * 60 + 8);          // harder things have a smaller green zone
       encounter.zone = [50 - zone / 2, 50 + zone / 2];
       box.innerHTML = '<div class="grwild"><i style="color:' + d.colour + '">' + d.mark + '</i><div><b>A wild ' + esc(d.name) + ' appeared!</b><span>' + esc(d.line) + '</span></div></div>' +
@@ -104,24 +142,26 @@
       if (got) {
         const isNew = !caught.includes(d.id); save(d.id);
         const all = caught.length === DEX.length;
+        if (all && isNew) sound.complete(); else sound.caught();
         talk('<b>Gotcha! ' + esc(d.name) + ' was caught.</b>' + (isNew ? ' Added to your Molusdex.' : ' You already had one.') + (all ? '<br>That is all six. Molusdex complete!' : ''),
           d.url ? [{ label: 'Nice', go: done }, { label: 'Visit ' + d.name, url: d.url }] : [{ label: 'Nice', go: done }]);
-      } else talk('<b>Oh no, ' + esc(d.name) + ' slipped away.</b> Try again in the grass.', [{ label: 'OK', go: done }]);
+      } else { talk('<b>Oh no, ' + esc(d.name) + ' slipped away.</b> Try again in the grass.', [{ label: 'OK', go: done }]); sound.escaped(); }
     };
 
     /* ----- moving around ----- */
     const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
     const tryStep = dir => {
       me.face = dir; const [dx, dy] = DIRS[dir], nx = me.x + dx, ny = me.y + dy;
-      if (BLOCKED.includes(tileAt(nx, ny))) return;
+      if (BLOCKED.includes(tileAt(nx, ny))) { if (frame - lastBump > 16) { sound.bump(); lastBump = frame; } return; }
       me.tx = nx; me.ty = ny; me.moving = true;
     };
     const arrived = () => {
       me.x = me.tx; me.y = me.ty; me.moving = false; const t = tileAt(me.x, me.y);
+      if (t === ',') sound.rustle(); else sound.step(steps++ % 2);
       const b = Object.values(BUILDINGS).find(b => b.door === t);
       if (b && lastDoor !== t) {
         lastDoor = t; const thing = DEX.find(d => d.id === b.gives), isNew = !caught.includes(thing.id); save(thing.id);
-        held.clear();
+        held.clear(); sound.door();
         return talk('<b>' + esc(b.name) + '</b> ' + esc(b.text) + (isNew ? '<br>You got <b style="color:' + thing.colour + '">' + esc(thing.name) + '</b> for your Molusdex!' : ''),
           [{ label: 'Back outside', go: () => { done(); } }, { label: 'Open the real one', url: b.url }]);
       }
@@ -245,17 +285,21 @@
     const onKey = e => {
       if (ov.hidden) return;
       if (e.key === 'Escape') { e.preventDefault(); return close(); }
+      if ((e.key === 'm' || e.key === 'M') && e.type === 'keydown') { e.preventDefault(); return toggleMute(); }
       if (e.key === ' ' || e.key === 'Enter') { if (e.target.tagName === 'A') return; e.preventDefault(); if (e.type === 'keydown' && !e.repeat) act(); return; }
       const k = KEYS[e.key]; if (!k) return; e.preventDefault();
       if (e.type === 'keydown') held.add(k); else held.delete(k);
     };
     document.addEventListener('keydown', onKey); document.addEventListener('keyup', onKey);
-    ov.querySelectorAll('.grpad [data-k]').forEach(b => {
-      const k = b.dataset.k;
-      if (k === 'act') { b.onclick = act; return; }
-      const on = e => { e.preventDefault(); held.add(k); }, off = () => held.delete(k);
-      b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
-    });
+    const muteBtn = ov.querySelector('.grmute');
+    const showMute = () => {
+      muteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/>' +
+        (sound.muted ? '<path d="m16 9 5 6M21 9l-5 6"/>' : '<path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>') + '</svg>';
+      muteBtn.setAttribute('aria-label', sound.muted ? 'Turn sound on' : 'Mute sound'); muteBtn.classList.toggle('off', sound.muted);
+    };
+    const toggleMute = () => { sound.setMuted(!sound.muted); showMute(); };
+    muteBtn.onclick = () => { toggleMute(); cv.focus({ preventScroll: true }); };
+    showMute();
     ov.querySelector('.grx').onclick = () => close();
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
 
