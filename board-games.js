@@ -283,5 +283,72 @@
     fresh();
   }
 
-  window.boardGames = { chess, ttt };
+  /* =====================================================================
+     SNAKE (the secret game, unlocked by reaching the bottom of the page)
+     ===================================================================== */
+  function snake(panel) {
+    const N = 16;                                                     // board is 16 x 16 squares
+    panel.innerHTML =
+      '<div class="sdh"><b>Snake</b><span class="sdt snb">Best 0</span></div>' +
+      '<canvas class="snc" width="480" height="480" aria-label="Snake board"></canvas>' +
+      '<div class="snpad"><button type="button" data-d="up" aria-label="Up">▲</button><button type="button" data-d="left" aria-label="Left">◀</button><button type="button" data-d="down" aria-label="Down">▼</button><button type="button" data-d="right" aria-label="Right">▶</button></div>' +
+      '<div class="sdf"><span class="bgmsg" aria-live="polite">Arrow keys, WASD or swipe.</span><button type="button" class="sdnew" data-a="new">Start</button></div>';
+    const cv = panel.querySelector('canvas'), ctx = cv.getContext('2d'), msg = panel.querySelector('.bgmsg'), bestEl = panel.querySelector('.snb'), C = cv.width / N;
+    const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    let body, dir, queued, food, timer, running = false, points = 0;
+    let best = 0; try { best = +localStorage.getItem('snake-best') || 0; } catch (e) {}
+    bestEl.textContent = 'Best ' + best;
+
+    const freeSquare = () => { let s; do { s = [Math.floor(Math.random() * N), Math.floor(Math.random() * N)]; } while (body.some(b => b[0] === s[0] && b[1] === s[1])); return s; };
+    const paint = () => {
+      ctx.fillStyle = '#f5f5f7'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.fillStyle = '#ebebf0'; for (let x = 0; x < N; x++) for (let y = 0; y < N; y++) if ((x + y) % 2) ctx.fillRect(x * C, y * C, C, C);
+      ctx.fillStyle = '#ff453a'; ctx.fillRect(food[0] * C + 6, food[1] * C + 6, C - 12, C - 12);
+      body.forEach((b, i) => { ctx.fillStyle = i ? '#1d1d1f' : '#0a84ff'; ctx.fillRect(b[0] * C + 2, b[1] * C + 2, C - 4, C - 4); });
+    };
+    const stop = text => { running = false; clearInterval(timer); msg.textContent = text; panel.querySelector('[data-a=new]').textContent = 'Play again'; };
+    const step = () => {
+      dir = queued;
+      const head = [body[0][0] + dir[0], body[0][1] + dir[1]];
+      const hitsWall = head[0] < 0 || head[1] < 0 || head[0] >= N || head[1] >= N;
+      const hitsSelf = body.slice(0, -1).some(b => b[0] === head[0] && b[1] === head[1]);
+      if (hitsWall || hitsSelf) {
+        if (points > best) { best = points; try { localStorage.setItem('snake-best', best); } catch (e) {} bestEl.textContent = 'Best ' + best; }
+        return stop('Game over · ' + points + ' point' + (points === 1 ? '' : 's') + '.');
+      }
+      body.unshift(head);
+      if (head[0] === food[0] && head[1] === food[1]) {
+        points++; msg.textContent = points + ' point' + (points === 1 ? '' : 's');
+        food = freeSquare(); clearInterval(timer); timer = setInterval(step, Math.max(70, 150 - points * 4));   // a little faster each time
+      } else body.pop();
+      paint();
+    };
+    const start = () => {
+      body = [[7, 8], [6, 8], [5, 8]]; dir = queued = DIRS.right; food = freeSquare(); points = 0; running = true;
+      msg.textContent = '0 points'; clearInterval(timer); timer = setInterval(step, 150); paint();
+    };
+    const turn = name => { const d = DIRS[name]; if (!running || !d) return; if (d[0] === -dir[0] && d[1] === -dir[1]) return; queued = d; };
+
+    panel.querySelector('[data-a=new]').onclick = start;
+    panel.querySelectorAll('[data-d]').forEach(b => b.onclick = () => turn(b.dataset.d));
+    const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
+    document.addEventListener('keydown', e => {
+      if (!running || panel.hidden || /input|textarea/i.test(e.target.tagName)) return;
+      const name = KEYS[e.key] || KEYS[e.key.toLowerCase && e.key.toLowerCase()]; if (!name) return;
+      e.preventDefault(); turn(name);
+    });
+    let touch = null;
+    cv.addEventListener('touchstart', e => { touch = [e.touches[0].clientX, e.touches[0].clientY]; }, { passive: true });
+    cv.addEventListener('touchmove', e => { if (running) e.preventDefault(); }, { passive: false });
+    cv.addEventListener('touchend', e => {
+      if (!touch) return; const dx = e.changedTouches[0].clientX - touch[0], dy = e.changedTouches[0].clientY - touch[1]; touch = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+      turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+    });
+    // pause if the player switches to another game
+    new MutationObserver(() => { if (panel.hidden && running) stop('Paused. Press Play again to restart.'); }).observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+    body = [[7, 8], [6, 8], [5, 8]]; dir = DIRS.right; food = [11, 8]; paint();
+  }
+
+  window.boardGames = { chess, ttt, snake };
 })();

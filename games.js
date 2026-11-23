@@ -28,15 +28,16 @@
   };
   // [id, name, small icon, short tag shown on the game card]
   const TABS = [['sudoku', 'Sudoku', '9', 'Timed · 3 levels'], ['wordle', 'Wordle', 'W', 'Daily word'], ['chess', 'Chess', '♞\uFE0E', 'vs Bot · 2 players'], ['ttt', 'Tic-tac-toe', '✕', 'vs Bot · 2 players'],
-    ['memory', 'Memory', '◐', '8 pairs'], ['quick', 'Quick maths', '±', '60 seconds'], ['bigger', 'Bigger or smaller', '⇄', '60 seconds'], ['sequence', "What's next", '…', '60 seconds']];
-  const BOARD = { chess: 1, ttt: 1 }; // board games: no leaderboard
+    ['memory', 'Memory', '◐', '8 pairs'], ['quick', 'Quick maths', '±', '60 seconds'], ['bigger', 'Bigger or smaller', '⇄', '60 seconds'], ['sequence', "What's next", '…', '60 seconds'], ['snake', 'Snake', '▚', 'Secret · unlocked']];
+  const BOARD = { chess: 1, ttt: 1, snake: 1 }; // board games: no leaderboard
+  const secretOpen = () => { try { return !!localStorage.getItem('pixel-secret'); } catch (e) { return false; } };
   const NAMES = { wordle: 'Wordle', memory: 'Memory' }, ASC = g => /^(sudoku|wordle|memory)/.test(g);
   const show = (g, s) => g.startsWith('sudoku') ? fmt(s) : g === 'wordle' ? Math.floor(s / 1000) + (Math.floor(s / 1000) > 1 ? ' tries' : ' try') + ' · ' + fmt(s % 1000) : g === 'memory' ? Math.floor(s / 1000) + ' moves · ' + fmt(s % 1000) : s;
   const label = g => g.startsWith('sudoku') ? 'Sudoku · ' + g.split('-')[1][0].toUpperCase() + g.split('-')[1].slice(1) : (NAMES[g] || G[g].name);
 
   /* ---------- markup ---------- */
   const bar = document.createElement('div'); bar.className = 'gbar';
-  bar.innerHTML = '<div class="gtabs" role="tablist">' + TABS.map((t, i) => '<button type="button" role="tab" data-g="' + t[0] + '" aria-selected="' + !i + '"><i aria-hidden="true">' + t[2] + '</i><span><b>' + t[1] + '</b><small>' + t[3] + '</small></span></button>').join('') + '</div>' +
+  bar.innerHTML = '<div class="gtabs" role="tablist">' + TABS.map((t, i) => '<button type="button" role="tab" data-g="' + t[0] + '" aria-selected="' + !i + '"' + (t[0] === 'snake' && !secretOpen() ? ' hidden' : '') + '><i aria-hidden="true">' + t[2] + '</i><span><b>' + t[1] + '</b><small>' + t[3] + '</small></span></button>').join('') + '</div>' +
     '<button type="button" class="glb" id="glbb" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Leaderboard</span></button><button type="button" class="glb ghb" id="ghb" aria-expanded="false" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17h.01"/></svg></button>';
   const lb = document.createElement('div'); lb.className = 'glbp'; lb.hidden = true;
   const gh = document.createElement('div'); gh.className = 'glbp ghp'; gh.hidden = true;
@@ -58,7 +59,11 @@
   // chess and tic-tac-toe live in board-games.js
   const cs = document.createElement('div'); cs.className = 'sdk bgm cs'; cs.hidden = true;
   const tt = document.createElement('div'); tt.className = 'sdk bgm tt'; tt.hidden = true;
-  mg.after(cs); cs.after(tt);
+  const sn = document.createElement('div'); sn.className = 'sdk bgm sn'; sn.hidden = true;
+  mg.after(cs); cs.after(tt); tt.after(sn);
+  const PANELS = { chess: cs, ttt: tt, snake: sn };
+  // reaching the bottom of the page (pixel-run.js) unlocks Snake
+  window.addEventListener('pixel-secret', () => { const card = bar.querySelector('[data-g=snake]'); if (card) { card.hidden = false; card.classList.add('fresh'); } });
   const built = {};
 
   /* ---------- leaderboard ---------- */
@@ -186,8 +191,8 @@
   bar.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     if (st) { clearInterval(st.tm); st = null; }
     bar.querySelectorAll('[data-g]').forEach(x => x.setAttribute('aria-selected', x === b)); cur = b.dataset.g; b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; cs.hidden = cur !== 'chess'; tt.hidden = cur !== 'ttt';
-    if (BOARD[cur] && !built[cur] && window.boardGames) { window.boardGames[cur](cur === 'chess' ? cs : tt); built[cur] = true; }
+    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; cs.hidden = cur !== 'chess'; tt.hidden = cur !== 'ttt'; sn.hidden = cur !== 'snake';
+    if (BOARD[cur] && !built[cur] && window.boardGames) { window.boardGames[cur](PANELS[cur]); built[cur] = true; }
     lbb.hidden = !!BOARD[cur]; if (BOARD[cur]) { lb.hidden = true; lbb.classList.remove('on'); lbb.setAttribute('aria-expanded', false); }
     wd.hidden = cur !== 'wordle'; mm.hidden = cur !== 'memory'; if (G[cur]) intro(); if (cur === 'wordle' && !W.ans) wStart(false); if (cur === 'memory' && !M.cards) mStart(); if (!lb.hidden) showBoard(); if (!gh.hidden) guide(); });
   document.querySelectorAll('#sdlv button').forEach(b => b.addEventListener('click', () => { if (!lb.hidden) setTimeout(showBoard, 0); }));
