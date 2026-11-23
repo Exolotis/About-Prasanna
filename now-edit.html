@@ -34,7 +34,7 @@ a{color:#0a84ff}
 <body>
 <main>
   <h1>Right now</h1>
-  <p class="sub">Change what shows on <a href="/#now">prasanna.lol</a>. Only admins can save.</p>
+  <p class="sub">Change what shows on <a href="/#now">prasanna.lol</a>. Only the owner can save.</p>
 
   <section id="signin" class="card">
     <h2>Sign in</h2>
@@ -80,7 +80,7 @@ a{color:#0a84ff}
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
 <script>
-/* Edit the Right now cards. Sign in with an emailed code; the database only lets admins save. */
+/* Edit the Right now cards. Sign in with an emailed code; the database only lets the owner save. */
 (function () {
   var db = supabase.createClient('https://orhlwvmxnsztwhfimjru.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs');
   var FIELDS = ['city', 'status_emoji', 'status_text', 'building_title', 'building_text', 'building_tags', 'reading_title', 'reading_author', 'this_week'];
@@ -92,8 +92,8 @@ a{color:#0a84ff}
   STATUSES.forEach(function (s) { var b = document.createElement('button'); b.type = 'button'; b.textContent = s[0] + ' ' + s[1]; b.onclick = function () { $('status_emoji').value = s[0]; $('status_text').value = s[1]; }; $('quick').appendChild(b); });
 
   function load() {
-    db.rpc('is_admin').then(function (r) {
-      if (!r.data) { say($('m2'), 'This account is not an admin.', 'bad'); $('signin').hidden = false; $('form').hidden = true; return; }
+    db.rpc('now_can_edit').then(function (r) {
+      if (!r.data) { say($('m2'), 'This account is not allowed to edit.', 'bad'); db.auth.signOut(); $('signin').hidden = false; $('form').hidden = true; return; }
       return db.from('now_cards').select('*').eq('id', 1).single().then(function (q) {
         if (q.error) { say($('m3'), 'Could not load: ' + q.error.message + ' (has tools/now.sql been run?)', 'bad'); }
         FIELDS.forEach(function (f) { $(f).value = (q.data && q.data[f]) || ''; });

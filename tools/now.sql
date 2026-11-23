@@ -1,5 +1,5 @@
 -- "Right now" cards on prasanna.lol: one row that you edit at prasanna.lol/now-edit
--- Run this once in Supabase → SQL editor. Anyone can read it; only admins (profiles.is_admin) can change it.
+-- Run this once in Supabase → SQL editor. Anyone can read it; only the owner's two email addresses can change it (see now_can_edit below).
 
 create table if not exists public.now_cards (
   id              int primary key default 1 check (id = 1),          -- only ever one row
@@ -26,8 +26,13 @@ create trigger now_cards_touch before update on public.now_cards for each row ex
 alter table public.now_cards enable row level security;
 drop policy if exists "now cards are public" on public.now_cards;
 create policy "now cards are public" on public.now_cards for select to anon, authenticated using (true);
+-- Only the owner's own email addresses may edit. They are listed in public.now_can_edit(),
+-- which is created separately in Supabase so the addresses never sit in this public repo:
+--   create or replace function public.now_can_edit() returns boolean language sql stable security definer
+--   set search_path = public as $ select lower(coalesce(auth.email(), '')) in ('<your email 1>', '<your email 2>') $;
 drop policy if exists "admins edit now cards" on public.now_cards;
-create policy "admins edit now cards" on public.now_cards for update to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "owner edits now cards" on public.now_cards;
+create policy "owner edits now cards" on public.now_cards for update to authenticated using (public.now_can_edit()) with check (public.now_can_edit());
 
 revoke all on public.now_cards from anon, authenticated;
 grant select on public.now_cards to anon, authenticated;
