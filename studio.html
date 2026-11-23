@@ -132,24 +132,30 @@ a{color:#0a84ff}
   var say = function (el, text, kind) { el.textContent = text; el.className = 'msg' + (kind ? ' ' + kind : ''); };
   var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var sentTo = '';
+  // only the owner's two email addresses may use the Studio. Stored as fingerprints (SHA-256), so the addresses aren't in this page.
+  var OWNER = ['ac7338c35ffad60c790748b4b4003867e65842c6f0ba99aa8753bf96596047d6', '2354ba82e7a723c7a7d46e08fb271231f46cb0291b989c81184e69fa7257d57e'];
+  var isOwner = function (email) { return crypto.subtle.digest('SHA-256', new TextEncoder().encode(email.trim().toLowerCase())).then(function (b) { var hex = [].map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); return OWNER.indexOf(hex) >= 0; }); };
+  var NOPE = "This email can't use the Studio.";
 
   /* ---------- sign in ---------- */
   $('send').onclick = function () {
     var email = $('email').value.trim(); if (!email) return; $('send').disabled = true; say($('m1'), 'Sending…');
+    isOwner(email).then(function (ok) { if (!ok) { $('send').disabled = false; return say($('m1'), NOPE, 'bad'); }
     db.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } }).then(function (r) {
       $('send').disabled = false; if (r.error) return say($('m1'), r.error.message, 'bad');
       sentTo = email; $('step1').hidden = true; $('step2').hidden = false; say($('m2'), 'Code sent to ' + email + '.'); $('code').focus();
-    });
+    }); });
   };
   $('back').onclick = function () { $('step2').hidden = true; $('step1').hidden = false; };
   $('login').onclick = function () {
     var email = $('email').value.trim(), pass = $('pass').value; if (!email || !pass) return say($('m1'), 'Type your email and password, or use Email me a code.', 'bad');
     $('login').disabled = true; say($('m1'), 'Signing in…');
+    isOwner(email).then(function (ok) { if (!ok) { $('login').disabled = false; $('pass').value = ''; return say($('m1'), NOPE, 'bad'); }
     db.auth.signInWithPassword({ email: email, password: pass }).then(function (r) {
       $('login').disabled = false; $('pass').value = '';
       if (r.error) return say($('m1'), 'Wrong email or password. You can use Email me a code instead.', 'bad');
       start();
-    });
+    }); });
   };
   $('pass').onkeydown = function (e) { if (e.key === 'Enter') $('login').click(); };
   $('setpass').onclick = function () {
