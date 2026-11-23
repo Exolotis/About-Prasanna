@@ -70,7 +70,7 @@
     try { const r = await fetch(SB + '/now_cards?select=*&id=eq.1', { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } }); if (r.ok) c = (await r.json())[0]; } catch (e) {}
     if (c && c.city && c.city.toLowerCase() !== place.city.toLowerCase()) await findCity(c.city);
     $('.nwcity').textContent = place.city + '.'; tick(); weather();
-    if (!c) return;                                                   // table not set up yet: keep the built-in text
+    if (!c) return video('');                                         // table not set up yet: keep the built-in text
     $('.nwstatus').innerHTML = '<span>' + esc(c.status_emoji) + '</span>' + esc(c.status_text); show('.nwstatus', !!c.status_text);
     $('.nwbuild b').textContent = c.building_title; $('.nwbuild p').textContent = c.building_text;
     $('.nwtags').innerHTML = c.building_tags.split(',').map(t => t.trim()).filter(Boolean).slice(0, 5).map(t => '<span>' + esc(t) + '</span>').join('');
@@ -81,24 +81,62 @@
     }
     show('.nwread', !!c.reading_title);
     $('.nwweek p').textContent = c.this_week; show('.nwweek', !!c.this_week);
-    layout();
+    layout(); video(c.video_url || '');
   };
 
-  /* ---------- newest YouTube video ---------- */
-  const video = async () => {
+  /* ---------- YouTube: the video you pinned in the Studio, or else your newest upload ---------- */
+  // works with youtube.com/watch?v=, youtu.be/, /shorts/, /embed/ and /live/ links
+  const videoId = url => { const m = String(url || '').match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : ''; };
+  const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let shownVideo = '', previewWatch = null;
+  const video = async pinnedUrl => {
     try {
-      const v = await (await fetch('/api/latest-video')).json();
-      if (!v || v.none || !/^[A-Za-z0-9_-]{11}$/.test(v.id)) return show('.nwyt', false);
-      $('.nwyt a').href = 'https://www.youtube.com/watch?v=' + v.id;
-      $('.nwyt .nwthumb').innerHTML = '<img src="https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg" alt="" loading="lazy">';
-      $('.nwyt .nwvid b').textContent = v.title; $('.nwyt .nwvid small').textContent = 'Exolotis on YouTube · ' + ago(v.published);
-      show('.nwyt', true);
-    } catch (e) { show('.nwyt', false); }
-    layout();
+      const pin = videoId(pinnedUrl);
+      const v = await (await fetch('/api/latest-video' + (pin ? '?v=' + pin : ''))).json();
+      if (!v || v.none || !/^[A-Za-z0-9_-]{11}$/.test(v.id)) { show('.nwyt', false); return layout(); }
+      if (v.id === shownVideo) return;                                  // same video: leave the playing preview alone
+      shownVideo = v.id;
+      $('.nwyt .nwhead span').textContent = v.pinned ? 'Featured video' : 'Latest video';
+      $('.nwyt .nwopen').href = 'https://www.youtube.com/watch?v=' + v.id;
+      const thumb = $('.nwyt .nwthumb');
+      thumb.innerHTML = '<img src="https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg" alt="" loading="lazy"><span class="nwplay" aria-hidden="true"></span>';
+      $('.nwyt .nwvid b').textContent = v.title;
+      $('.nwyt .nwvid small').textContent = (v.channel || 'YouTube') + (v.published ? ' · ' + ago(v.published) : '');
+      $('.nwyt .nwplaybtn').onclick = () => openPlayer(v.id);
+      show('.nwyt', true); layout();
+      // silent looping preview, started only once the card is on screen
+      if (previewWatch) previewWatch.disconnect();
+      if (!quiet && 'IntersectionObserver' in window) {
+        previewWatch = new IntersectionObserver(list => {
+          if (!list.some(e => e.isIntersecting)) return; previewWatch.disconnect();
+          const f = document.createElement('iframe');
+          f.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&mute=1&loop=1&playlist=' + v.id + '&controls=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&disablekb=1';
+          f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.title = 'Video preview'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true');
+          f.onload = () => setTimeout(() => thumb.classList.add('live'), 1200);   // fade in once it has started
+          thumb.appendChild(f);
+        }, { threshold: .4 });
+        previewWatch.observe(thumb);
+      }
+    } catch (e) { show('.nwyt', false); layout(); }
   };
+
+  // the full player with sound, over the page
+  const player = document.createElement('div'); player.className = 'nwplayer'; player.hidden = true;
+  player.setAttribute('role', 'dialog'); player.setAttribute('aria-modal', 'true'); player.setAttribute('aria-label', 'Video');
+  player.innerHTML = '<button type="button" class="nwpx" aria-label="Close">×</button><div class="nwpbox"></div>';
+  document.body.appendChild(player);
+  const closePlayer = () => { player.hidden = true; player.querySelector('.nwpbox').innerHTML = ''; document.documentElement.classList.remove('grlock'); };
+  const openPlayer = id => {
+    player.querySelector('.nwpbox').innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Video"></iframe>';
+    player.hidden = false; document.documentElement.classList.add('grlock'); player.querySelector('.nwpx').focus();
+  };
+  player.querySelector('.nwpx').onclick = closePlayer;
+  player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !player.hidden) closePlayer(); });
 
   // bottom row: as many columns as there are cards showing
-  const layout = () => { const row = $('.nwrow'), n = [...row.children].filter(x => !x.hidden).length; row.hidden = !n; row.style.setProperty('--n', n || 1); };
+  // the Building card is twice as wide as the others, so it counts as two columns
+  const layout = () => { const row = $('.nwrow'), shown = [...row.children].filter(x => !x.hidden), n = shown.reduce((t, x) => t + (x.classList.contains('nwbuild') ? 2 : 1), 0); row.hidden = !shown.length; row.style.setProperty('--n', n || 1); };
 
   /* ---------- Spotify ---------- */
   const music = $('.nwmusic');
@@ -127,6 +165,49 @@
   };
   const loadSong = async () => { try { const r = await fetch('/api/now-playing', { cache: 'no-store' }); showSong(r.ok ? await r.json() : null); } catch (e) { showSong(null); } };
 
-  cards(); video(); loadSong();
+
+  /* ---------- "Get early access": a small form right here, saved to the same list as api.moluscca.com (table api_waitlist) ---------- */
+  const cta = $('.nwcta');
+  if (cta) {
+    const wl = document.createElement('div'); wl.className = 'nwwl'; wl.hidden = true;
+    wl.setAttribute('role', 'dialog'); wl.setAttribute('aria-modal', 'true'); wl.setAttribute('aria-label', 'Moluscca API early access');
+    const formHtml = '<form class="nwwlbox" novalidate><button type="button" class="nwwlx" aria-label="Close">×</button>' +
+      '<span class="nwwltag">Moluscca API · early access</span><h3>Get in early.</h3><p>Risk maths and India data in one request. Join the list and we will email you when keys open.</p>' +
+      '<label for="nwwl-name">Name</label><input id="nwwl-name" name="name" maxlength="120" autocomplete="name" required>' +
+      '<label for="nwwl-email">Work email</label><input id="nwwl-email" name="email" type="email" maxlength="200" autocomplete="email" required>' +
+      '<input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">' +   // trap for spam bots
+      '<button type="submit" class="nwwlgo">Join the waitlist</button><p class="nwwlmsg" aria-live="polite"></p></form>';
+    wl.innerHTML = formHtml; document.body.appendChild(wl);
+    const closeWl = () => { wl.hidden = true; document.documentElement.classList.remove('grlock'); };
+    const wire = () => {
+      const form = wl.querySelector('form'), msg = form.querySelector('.nwwlmsg'), go = form.querySelector('.nwwlgo');
+      form.querySelector('.nwwlx').onclick = closeWl;
+      form.onsubmit = e => {
+        e.preventDefault();
+        const name = form.name.value.trim(), email = form.email.value.trim().toLowerCase();
+        if (form.website.value) return closeWl();                                       // a bot filled the hidden box
+        if (!name) { msg.textContent = 'Add your name.'; return; }
+        if (!form.email.checkValidity() || !email) { msg.textContent = 'That email does not look right.'; return; }
+        go.disabled = true; go.textContent = 'Joining…'; msg.textContent = '';
+        fetch(SB + '/api_waitlist', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ name, email }) })
+          .then(r => {
+            if (r.ok || r.status === 409) {                                             // 409: already on the list
+              form.innerHTML = '<button type="button" class="nwwlx" aria-label="Close">×</button><span class="nwwltag">You are on the list</span><h3>Thanks, ' + esc(name) + '.</h3><p>We will email ' + esc(email) + ' as soon as keys open. Meanwhile, have a look at <a href="https://api.moluscca.com" target="_blank" rel="noopener">api.moluscca.com</a>.</p>';
+              form.querySelector('.nwwlx').onclick = closeWl;
+            } else { go.disabled = false; go.textContent = 'Join the waitlist'; msg.textContent = 'Could not join right now. Try again in a minute.'; }
+          })
+          .catch(() => { go.disabled = false; go.textContent = 'Join the waitlist'; msg.textContent = 'Could not join right now. Try again in a minute.'; });
+      };
+    };
+    cta.addEventListener('click', e => {
+      e.preventDefault();
+      if (!wl.querySelector('#nwwl-name')) { wl.innerHTML = formHtml; }                 // fresh form each time after a sign-up
+      wire(); wl.hidden = false; document.documentElement.classList.add('grlock'); wl.querySelector('#nwwl-name').focus();
+    });
+    wl.addEventListener('click', e => { if (e.target === wl) closeWl(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !wl.hidden) closeWl(); });
+  }
+
+  cards(); loadSong();
   setInterval(loadSong, 30000); setInterval(drawProgress, 1000); setInterval(cards, 10 * 60000);
 })();

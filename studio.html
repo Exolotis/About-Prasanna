@@ -77,6 +77,7 @@ a{color:#0a84ff}
       <section class="card"><h2>Reading</h2>
         <div class="two"><div><label for="reading_title">Book title</label><input id="reading_title" maxlength="120" placeholder="Leave empty to hide"></div><div><label for="reading_author">Author</label><input id="reading_author" maxlength="80"></div></div>
         <div class="hint">The cover is found by itself.</div></section>
+      <section class="card"><h2>Video</h2><label for="video_url">YouTube link to feature</label><input id="video_url" maxlength="200" placeholder="https://youtu.be/…  (leave empty to show your newest Exolotis video)"><div class="hint">It plays as a silent looping preview on the site. Visitors click it for sound.</div></section>
       <section class="card"><h2>This week</h2><textarea id="this_week" maxlength="160" placeholder="Leave empty to hide"></textarea></section>
       <div class="bar"><button type="submit" id="nowsave">Save</button><span class="msg" id="m3"></span></div>
     </form>
@@ -214,7 +215,7 @@ a{color:#0a84ff}
   var choose = function (then) { pickFor = then; $('pick').click(); };
 
   /* ---------- Right now ---------- */
-  var NOWF = ['city', 'status_emoji', 'status_text', 'building_title', 'building_text', 'building_tags', 'reading_title', 'reading_author', 'this_week'];
+  var NOWF = ['city', 'status_emoji', 'status_text', 'building_title', 'building_text', 'building_tags', 'reading_title', 'reading_author', 'this_week', 'video_url'];
   [['🟢', 'Open for a chat'], ['🎧', 'Deep work'], ['💼', 'At Dodo'], ['🐙', 'Building Moluscca'], ['✈️', 'Travelling'], ['🌙', 'Offline']].forEach(function (s) {
     var b = document.createElement('button'); b.type = 'button'; b.textContent = s[0] + ' ' + s[1]; b.onclick = function () { $('status_emoji').value = s[0]; $('status_text').value = s[1]; }; $('quick').appendChild(b);
   });
@@ -222,6 +223,7 @@ a{color:#0a84ff}
   $('tab-now').onsubmit = function (e) {
     e.preventDefault(); $('nowsave').disabled = true; say($('m3'), 'Saving…');
     var row = {}; NOWF.forEach(function (f) { row[f] = $(f).value.trim(); }); if (!row.city) row.city = 'Bengaluru';
+    if (row.video_url && !/^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//.test(row.video_url)) { $('nowsave').disabled = false; return say($('m3'), 'The video must be a YouTube link (https://youtube.com/… or https://youtu.be/…).', 'bad'); }
     db.from('now_cards').update(row).eq('id', 1).select().then(function (r) {
       $('nowsave').disabled = false;
       say($('m3'), r.error || !r.data || !r.data.length ? 'Not saved: ' + (r.error ? r.error.message : 'no permission') : 'Saved. It shows on the site within a minute.', r.error || !r.data || !r.data.length ? 'bad' : 'ok');

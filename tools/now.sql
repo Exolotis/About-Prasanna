@@ -37,3 +37,7 @@ create policy "owner edits now cards" on public.now_cards for update to authenti
 revoke all on public.now_cards from anon, authenticated;
 grant select on public.now_cards to anon, authenticated;
 grant update (city, status_emoji, status_text, building_title, building_text, building_tags, reading_title, reading_author, this_week) on public.now_cards to authenticated;
+
+-- a YouTube link to feature (empty = show the newest Exolotis upload)
+alter table public.now_cards add column if not exists video_url text not null default '' check (video_url = '' or video_url ~ '^https://(www\.|m\.)?(youtube\.com|youtu\.be)/');
+grant update (video_url) on public.now_cards to authenticated;
