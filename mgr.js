@@ -1,10 +1,10 @@
 /* Moluscca Global Revolution: a small top-down adventure that opens in an overlay.
    You are an octopus. Walk the town, step into tall grass to meet wild Moluscca things,
    catch them with a timing bar, and fill the Molusdex. Buildings link to the real products.
-   Everything is drawn in code: no images, no outside libraries. */
+   Map tiles are Kenney's Tiny Town pack (CC0, kenney.nl). The octopus is our own pixel art. */
 (() => {
   const TILE = 32, VIEW_W = 15, VIEW_H = 11;           // the camera shows 15 x 11 tiles
-  const MAP = [                                         // . grass  , tall grass  T tree  ~ water  = path  F flowers
+  const MAP = [                                         // . grass  , tall grass  T tree  ~ bushes  = path  F flowers
     'TTTTTTTTTTTTTTTTTTTTTTTTTTTT',                    // A/a API Lab (a = door)  S/s Templates Store  Q/q Skill Shop
     'T..F.....,,,,=,,,,.....F...T',
     'T.AAAA....,,,=,,,....SSSS..T',
@@ -137,49 +137,80 @@
       if (mode === 'talk') { const b = box.querySelector('button'); if (b) b.click(); return; }
       // talking to a sign: look at the tile in front
       const [dx, dy] = DIRS[me.face], t = tileAt(me.x + dx, me.y + dy);
-      if (t === '~') talk('The water sparkles. Somewhere out there is a 1-in-200 wave.', [{ label: 'OK', go: done }]);
+      if (t === '~') talk('A round bush. Nothing is hiding in this one.', [{ label: 'OK', go: done }]);
       else if (t === 'T') talk('A sturdy tree. Trees do not worry about tail risk.', [{ label: 'OK', go: done }]);
     };
 
-    /* ----- drawing ----- */
+    /* ----- drawing: tiles come from Kenney's Tiny Town pack (CC0, kenney.nl), 16 x 16 each, 12 per row ----- */
+    const sheet = new Image(); sheet.src = '/mgr-tiles.png';
+    const T = { grass: 0, grassTuft: 1, flowers: 2, plants: 17, tree: 28, autumnTree: 27, bush: 5, path: 25, mushrooms: 29 };
+    const ROOF = { blue: [[48, 49, 50], [60, 61, 62]], red: [[52, 53, 54], [64, 65, 66]] };
+    const WALL = { stone: { window: 88, door: 89 }, wood: { window: 84, door: 85 } };
+    const LOOK = { A: { roof: 'blue', wall: 'stone' }, S: { roof: 'red', wall: 'wood' }, Q: { roof: 'blue', wall: 'wood' } };
+    const spot = (x, y) => ((x * 73856093) ^ (y * 19349663)) >>> 0;     // a fixed "random" number per square, so the map never flickers
+    const put = (n, sx, sy) => ctx.drawImage(sheet, (n % 12) * 16, Math.floor(n / 12) * 16, 16, 16, sx, sy, TILE, TILE);
+    // where each building sits, worked out once from the map
+    const AREA = {};
+    Object.keys(BUILDINGS).forEach(k => {
+      const ys = MAP.map((r, y) => r.includes(k) || r.includes(BUILDINGS[k].door) ? y : -1).filter(y => y >= 0);
+      const xs = ys.flatMap(y => [...MAP[y]].map((c, x) => c === k || c === BUILDINGS[k].door ? x : -1).filter(x => x >= 0));
+      AREA[k] = { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs) + 1, h: ys.length };
+    });
+
     const drawTile = (t, x, y, sx, sy) => {
-      const g = (x + y) % 2 ? '#2f6b3a' : '#326f3d';
-      ctx.fillStyle = t === '=' ? '#cdb991' : t === '~' ? '#2c6aa3' : g; ctx.fillRect(sx, sy, TILE, TILE);
-      if (t === '=') { ctx.fillStyle = 'rgba(0,0,0,.05)'; ctx.fillRect(sx, sy + TILE - 3, TILE, 3); }
-      if (t === '~') { ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1.5; const o = (frame / 12 + x * 3) % 12;
-        ctx.beginPath(); ctx.moveTo(sx + 4, sy + 10 + o / 3); ctx.quadraticCurveTo(sx + 10, sy + 6 + o / 3, sx + 16, sy + 10 + o / 3); ctx.stroke(); }
-      if (t === ',') { const sway = Math.sin(frame / 20 + x + y) * 1.5;
-        for (let k = 0; k < 4; k++) { const bx = sx + 4 + k * 7, by = sy + TILE - 4; ctx.fillStyle = k % 2 ? '#4fa85c' : '#3f8f4c';
-          ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + 3 + sway, by - 18 - (k % 2) * 4); ctx.lineTo(bx + 6, by); ctx.fill(); } }
-      if (t === 'F') { [[8, 10, '#ff9f0a'], [22, 8, '#ff6b9a'], [15, 22, '#f5f5f7']].forEach(([fx, fy, c]) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(sx + fx, sy + fy, 3, 0, 7); ctx.fill(); }); }
-      if (t === 'T') { ctx.fillStyle = '#5b3a1e'; ctx.fillRect(sx + 13, sy + 20, 6, 10); ctx.fillStyle = '#1f4d2a'; ctx.beginPath(); ctx.arc(sx + 16, sy + 14, 12, 0, 7); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.beginPath(); ctx.arc(sx + 12, sy + 10, 5, 0, 7); ctx.fill(); }
-      const b = BUILDINGS[t] || Object.values(BUILDINGS).find(b => b.door === t);
-      if (b) {
-        const letter = Object.keys(BUILDINGS).find(k => BUILDINGS[k] === b), isTop = tileAt(x, y - 1) !== letter;
-        ctx.fillStyle = '#e4e4ea'; ctx.fillRect(sx, sy, TILE, TILE);
-        if (isTop) { ctx.fillStyle = b.roof; ctx.fillRect(sx, sy, TILE, TILE * .55); ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(sx, sy + TILE * .55 - 3, TILE, 3); }
-        else if (t !== b.door) { ctx.fillStyle = '#9fb4d8'; ctx.fillRect(sx + 9, sy + 9, 14, 12); }
-        if (t === b.door) { ctx.fillStyle = '#3a2a1a'; ctx.beginPath(); ctx.roundRect(sx + 8, sy + 6, 16, 26, [6, 6, 0, 0]); ctx.fill(); }
+      if (t === '=') return put(T.path, sx, sy);
+      put(spot(x, y) % 7 === 0 ? T.grassTuft : T.grass, sx, sy);                // grass under everything else
+      if (t === ',') put(T.plants, sx, sy);
+      else if (t === 'F') put(T.flowers, sx, sy);
+      else if (t === 'T') put(spot(x, y) % 5 === 0 ? T.autumnTree : T.tree, sx, sy);
+      else if (t === '~') put(spot(x, y) % 4 === 0 ? T.mushrooms : T.bush, sx, sy);
+      const k = Object.keys(BUILDINGS).find(k => k === t || BUILDINGS[k].door === t);
+      if (k) {
+        const a = AREA[k], c = x - a.x, r = y - a.y, look = LOOK[k], col = c === 0 ? 0 : c === a.w - 1 ? 2 : 1;
+        if (r < a.h - 1) put(ROOF[look.roof][Math.min(r, 1)][col], sx, sy);
+        else put(t === BUILDINGS[k].door ? WALL[look.wall].door : WALL[look.wall].window, sx, sy);
       }
     };
-    const drawLabels = (camX, camY) => {
-      Object.entries(BUILDINGS).forEach(([k, b]) => {
-        const y = MAP.findIndex(r => r.includes(k)), x = MAP[y].indexOf(k), w = MAP[y].split(k).length - 1;
-        const sx = x * TILE - camX + w * TILE / 2, sy = y * TILE - camY + 12;
-        ctx.font = '700 11px "Albert Sans", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = b.roof === '#f5f5f7' ? '#1d1d1f' : '#0b0b0c'; ctx.fillText(b.name.toUpperCase(), sx, sy + 2); ctx.textAlign = 'start';
+    const drawLabels = (camX, camY) => {               // a small pill with the building's name, in the site's style
+      Object.keys(BUILDINGS).forEach(k => {
+        const a = AREA[k], name = BUILDINGS[k].name, cx = (a.x + a.w / 2) * TILE - camX, cy = a.y * TILE - camY - 6;
+        ctx.font = '600 11px "Albert Sans", sans-serif'; const w = ctx.measureText(name).width + 16;
+        ctx.fillStyle = 'rgba(17,17,19,.88)'; ctx.beginPath(); ctx.roundRect(cx - w / 2, cy - 10, w, 20, 10); ctx.fill();
+        ctx.fillStyle = '#f5f5f7'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(name, cx, cy + .5);
+        ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
       });
     };
+    // the octopus, as 16 x 16 pixel art to match the tiles. d outline, b body, h shine, w eye white, k pupil
+    const OCTO_HEAD = [
+      '................',
+      '.....dddddd.....',
+      '...ddbbbbbbdd...',
+      '..dbbhhbbbbbbd..',
+      '..dbhhbbbbbbbd..',
+      '.dbbbbbbbbbbbbd.',
+      '.dbbbbbbbbbbbbd.',
+      '.dbbbbbbbbbbbbd.',
+      '.dbbbbbbbbbbbbd.',
+      '..dbbbbbbbbbbd..',
+      '..dbbbbbbbbbbd..'];
+    const OCTO_LEGS = [[
+      '..db.db..db.db..',
+      '.db..db..db..db.',
+      '.d...d....d...d.'], [
+      '..db.db..db.db..',
+      '..db..db.db.db..',
+      '...d...d.d...d..']];
+    const OCTO = { d: '#3b52b0', b: '#7C9CFF', h: '#c9d6ff', w: '#ffffff', k: '#15151a' };
+    const pixels = (rows, sx, sy, top) => rows.forEach((row, r) => [...row].forEach((ch, c) => {
+      if (ch === '.') return; ctx.fillStyle = OCTO[ch]; ctx.fillRect(sx + c * 2, sy + (top + r) * 2, 2, 2);
+    }));
     const drawOctopus = (sx, sy) => {
-      const cx = sx + TILE / 2, cy = sy + TILE / 2 - 2, walk = me.moving ? Math.sin(me.step / 2) : Math.sin(frame / 18) * .4;
-      ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx, sy + TILE - 3, 11, 4, 0, 0, 7); ctx.fill();
-      ctx.strokeStyle = '#5d7fe6'; ctx.lineWidth = 3.2; ctx.lineCap = 'round';
-      [-8, -3, 3, 8].forEach((o, i) => { const w = (i % 2 ? walk : -walk) * 3; ctx.beginPath(); ctx.moveTo(cx + o * .8, cy + 6); ctx.quadraticCurveTo(cx + o + w, cy + 12, cx + o * 1.2 - w, cy + 15); ctx.stroke(); });
-      ctx.fillStyle = '#7C9CFF'; ctx.beginPath(); ctx.ellipse(cx, cy - 1, 11, 10.5, 0, 0, 7); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.beginPath(); ctx.ellipse(cx - 4, cy - 6, 4, 3, -.4, 0, 7); ctx.fill();
-      if (me.face !== 'up') {
-        const ex = me.face === 'left' ? -2 : me.face === 'right' ? 2 : 0;
-        [-4, 4].forEach(o => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx + o + ex, cy, 3, 0, 7); ctx.fill(); ctx.fillStyle = '#0b0b0c'; ctx.beginPath(); ctx.arc(cx + o + ex * 1.4, cy + .5, 1.5, 0, 7); ctx.fill(); });
+      const bob = me.moving ? 0 : Math.round(Math.sin(frame / 14)), legs = me.moving ? Math.floor(me.step / 4) % 2 : 0, y = sy - 2 + bob;
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(sx + TILE / 2, sy + TILE - 2, 10, 3, 0, 0, 7); ctx.fill();
+      pixels(OCTO_HEAD, sx, y, 0); pixels(OCTO_LEGS[legs], sx, y, 11);
+      if (me.face !== 'up') {           // eyes look the way you walk
+        const shift = me.face === 'left' ? -1 : me.face === 'right' ? 1 : 0;
+        [4, 9].forEach(ex => { pixels(['ww', 'wk'.split('').map((p, i) => (shift > 0 ? 'wk' : shift < 0 ? 'kw' : 'wk')[i]).join('')], sx + (ex + shift) * 2, y, 6); });
       }
     };
 
@@ -199,13 +230,13 @@
       }
       const camX = Math.max(0, Math.min(COLS * TILE - cv.width, me.px + TILE / 2 - cv.width / 2));
       const camY = Math.max(0, Math.min(ROWS * TILE - cv.height, me.py + TILE / 2 - cv.height / 2));
-      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.clearRect(0, 0, cv.width, cv.height); ctx.imageSmoothingEnabled = false;   // keep the pixel art crisp
       const x0 = Math.floor(camX / TILE), y0 = Math.floor(camY / TILE);
       for (let y = y0; y <= y0 + VIEW_H; y++) for (let x = x0; x <= x0 + VIEW_W; x++) drawTile(tileAt(x, y), x, y, x * TILE - camX, y * TILE - camY);
       drawLabels(camX, camY);
       drawOctopus(me.px - camX, me.py - camY);
       // tall grass covers the octopus's legs, like walking through it
-      if (tileAt(me.x, me.y) === ',' && !me.moving) { ctx.fillStyle = 'rgba(63,143,76,.85)'; ctx.fillRect(me.px - camX + 4, me.py - camY + TILE - 9, TILE - 8, 7); }
+      if (tileAt(me.x, me.y) === ',' && !me.moving) ctx.drawImage(sheet, (T.plants % 12) * 16, Math.floor(T.plants / 12) * 16 + 10, 16, 6, me.px - camX, me.py - camY + TILE - 12, TILE, 12);
       requestAnimationFrame(loop);
     };
 
