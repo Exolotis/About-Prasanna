@@ -309,6 +309,36 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .snpad button{height:46px;border:0;border-radius:12px;background:rgba(255,255,255,.08);color:#f5f5f7;font-size:16px;cursor:pointer}
 .snpad [data-d=up]{grid-area:u}.snpad [data-d=left]{grid-area:l}.snpad [data-d=down]{grid-area:d}.snpad [data-d=right]{grid-area:r}
 @media(hover:none){.snpad{display:grid}}
+
+/* Moluscca Global Revolution */
+.grintro{margin:0 0 14px;color:var(--mute);font-size:14.5px;line-height:1.55}
+.grdex{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.grd{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);color:var(--faint)}
+.grd i{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.06);font:700 14px/1 var(--f);font-style:normal}
+.grd b{font:600 13px var(--f)}.grd.on{color:#f5f5f7}.grd.on i{background:#000}
+.grov{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.grov[hidden]{display:none}html.grlock{overflow:hidden}
+.grwin{width:min(760px,100%);border-radius:24px;background:var(--card,#111113);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),0 40px 120px rgba(0,0,0,.6);padding:14px}
+.grtop{display:flex;align-items:center;gap:12px;padding:2px 4px 12px}.grtop b{font:600 15px var(--f)}.grcount{margin-left:auto;color:var(--mute);font:500 13px var(--f)}
+.grx{width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,255,255,.08);color:#f5f5f7;font-size:20px;line-height:1;cursor:pointer}
+.grstage{position:relative;border-radius:16px;overflow:hidden}
+.grstage canvas{display:block;width:100%;height:auto;image-rendering:auto;outline:none}
+.grbox{position:absolute;left:10px;right:10px;bottom:10px;padding:14px 16px;border-radius:16px;background:rgba(17,17,19,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);color:#f5f5f7;font:500 14px/1.5 var(--f)}
+.grbox[hidden]{display:none}.grtext{margin-bottom:12px}
+.grbtns{display:flex;gap:8px;flex-wrap:wrap}.grbtns .sdnew{display:inline-flex;align-items:center;text-decoration:none;height:38px}
+.grwild{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.grwild i{flex:none;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:#000;font:700 24px/1 var(--f);font-style:normal;animation:grbob 1s ease-in-out infinite}
+.grwild b{display:block;font-size:15px}.grwild span{color:var(--mute);font-size:13.5px}
+@keyframes grbob{50%{transform:translateY(-4px)}}
+.grbar{position:relative;height:14px;border-radius:999px;background:rgba(255,255,255,.08);margin-bottom:12px;overflow:hidden}
+.grbar em{position:absolute;top:0;bottom:0;background:rgba(48,209,88,.55)}
+.grbar u{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;border-radius:2px;background:#f5f5f7;box-shadow:0 0 8px #fff}
+.grpad{display:none;grid-template-columns:repeat(3,50px) 1fr 62px;grid-template-areas:". u . . a" "l d r . a";gap:6px;margin-top:12px}
+.grpad button{height:44px;border:0;border-radius:12px;background:rgba(255,255,255,.08);color:#f5f5f7;font-size:15px;touch-action:none;user-select:none;-webkit-user-select:none}
+.grpad [data-k=up]{grid-area:u}.grpad [data-k=left]{grid-area:l}.grpad [data-k=down]{grid-area:d}.grpad [data-k=right]{grid-area:r}
+.grpad .gra{grid-area:a;height:auto;border-radius:50%;width:62px;aspect-ratio:1;align-self:center;background:#f5f5f7;color:#000;font:700 18px var(--f)}
+@media(hover:none){.grpad{display:grid}}
+@media(max-width:720px){.grdex{grid-template-columns:1fr 1fr}.grstage{overflow:visible}.grbox{position:static;margin-top:10px;font-size:13px;padding:12px}.grwild i{width:42px;height:42px;font-size:20px}}
 </style>
 </head>
 <body>
@@ -493,8 +523,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <section id="play">
   <div class="wrap">
     <div class="kick rv">Take a break</div>
-    <h2 class="rv">Eight games. <span class="g">Beat the board.</span></h2>
-    <p class="sub rv">Chess and tic-tac-toe against the bot or a friend, plus Sudoku, Wordle, Memory and three one-minute maths games.</p>
+    <h2 class="rv">Nine games. <span class="g">Beat the board.</span></h2>
+    <p class="sub rv">An octopus adventure, chess and tic-tac-toe against the bot or a friend, plus Sudoku, Wordle, Memory and three one-minute maths games.</p>
     <div class="sdk rv">
       <div class="sdh"><div class="seg" id="sdlv" role="tablist" aria-label="Difficulty"><button type="button" data-l="38" class="on">Easy</button><button type="button" data-l="46">Medium</button><button type="button" data-l="53">Hard</button></div><span class="sdt" id="sdt">0:00</span></div>
       <div class="sdg" id="sdg" role="grid" aria-label="Sudoku board"></div>
@@ -697,6 +727,7 @@ if (location.hash) { const t = document.getElementById(location.hash.slice(1)); 
 })();
 </script>
 <script src="/board-games.js" defer></script>
+<script src="/mgr.js" defer></script>
 <script src="/games.js" defer></script>
 <script src="/pixel-run.js" defer></script>
 <script>/* API card: type the command, then show the reply, each time the card comes into view */

@@ -27,9 +27,9 @@
       return { t: s.slice(0, 4).join(', ') + ', ?', a: s[4] }; } }
   };
   // [id, name, small icon, short tag shown on the game card]
-  const TABS = [['sudoku', 'Sudoku', '9', 'Timed · 3 levels'], ['wordle', 'Wordle', 'W', 'Daily word'], ['chess', 'Chess', '♞\uFE0E', 'vs Bot · 2 players'], ['ttt', 'Tic-tac-toe', '✕', 'vs Bot · 2 players'],
+  const TABS = [['sudoku', 'Sudoku', '9', 'Timed · 3 levels'], ['wordle', 'Wordle', 'W', 'Daily word'], ['mgr', 'Moluscca GR', '◕', 'Adventure · catch 6'], ['chess', 'Chess', '♞\uFE0E', 'vs Bot · 2 players'], ['ttt', 'Tic-tac-toe', '✕', 'vs Bot · 2 players'],
     ['memory', 'Memory', '◐', '8 pairs'], ['quick', 'Quick maths', '±', '60 seconds'], ['bigger', 'Bigger or smaller', '⇄', '60 seconds'], ['sequence', "What's next", '…', '60 seconds'], ['snake', 'Snake', '▚', 'Secret · unlocked']];
-  const BOARD = { chess: 1, ttt: 1, snake: 1 }; // board games: no leaderboard
+  const BOARD = { chess: 1, ttt: 1, snake: 1, mgr: 1 }; // board games: no leaderboard
   const secretOpen = () => { try { return !!localStorage.getItem('pixel-secret'); } catch (e) { return false; } };
   const NAMES = { wordle: 'Wordle', memory: 'Memory' }, ASC = g => /^(sudoku|wordle|memory)/.test(g);
   const show = (g, s) => g.startsWith('sudoku') ? fmt(s) : g === 'wordle' ? Math.floor(s / 1000) + (Math.floor(s / 1000) > 1 ? ' tries' : ' try') + ' · ' + fmt(s % 1000) : g === 'memory' ? Math.floor(s / 1000) + ' moves · ' + fmt(s % 1000) : s;
@@ -48,6 +48,7 @@
     wordle: ['Wordle', "Guess today's five-letter word in six tries. Everyone gets the same word.", 'Green: right letter, right spot. Yellow: in the word, wrong spot. Grey: not in the word.', 'After your daily go, practise with random words. Fewest tries, then fastest time, wins.'],
     chess: ['Chess', 'Checkmate the other king. All the normal rules, including castling and en passant.', 'Tap a piece to see where it can go, then tap a square. Pawns that reach the end become queens.', 'Play the bot on Easy, Medium or Hard, or pass the device for 2 players. Undo takes back your last move.'],
     ttt: ['Tic-tac-toe', 'Get three in a row: across, down or diagonal.', 'Tap a square. You are X against the bot. Who starts swaps every round.', 'Easy makes mistakes. Unbeatable never loses, so a draw is a good result.'],
+    mgr: ['Moluscca Global Revolution', 'Play as an octopus and explore a small town.', 'Walk into tall grass to meet wild Moluscca things. Stop the moving marker in the green zone to catch them.', 'Visit the API Lab, Templates Store and Skill Shop too. Catch all six to complete the Molusdex.'],
     memory: ['Memory', 'Flip two cards at a time to find the 8 matching pairs.', 'Pairs that match stay face up. The rest flip back.', 'Fewest moves, then fastest time, wins.'] };
   const guide = () => { const g = GUIDE[cur]; gh.innerHTML = '<div class="glbh"><b>How to play ' + g[0] + '</b></div><ul class="ghl">' + g.slice(1).map(t => '<li>' + t + '</li>').join('') + '</ul>'; };
   const mg = document.createElement('div'); mg.className = 'sdk mg'; mg.hidden = true;
@@ -61,7 +62,8 @@
   const tt = document.createElement('div'); tt.className = 'sdk bgm tt'; tt.hidden = true;
   const sn = document.createElement('div'); sn.className = 'sdk bgm sn'; sn.hidden = true;
   mg.after(cs); cs.after(tt); tt.after(sn);
-  const PANELS = { chess: cs, ttt: tt, snake: sn };
+  const gr = document.createElement('div'); gr.className = 'sdk bgm gr'; gr.hidden = true; sn.after(gr);
+  const PANELS = { chess: cs, ttt: tt, snake: sn, mgr: gr };
   // reaching the bottom of the page (pixel-run.js) unlocks Snake
   window.addEventListener('pixel-secret', () => { const card = bar.querySelector('[data-g=snake]'); if (card) { card.hidden = false; card.classList.add('fresh'); } });
   const built = {};
@@ -191,7 +193,7 @@
   bar.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     if (st) { clearInterval(st.tm); st = null; }
     bar.querySelectorAll('[data-g]').forEach(x => x.setAttribute('aria-selected', x === b)); cur = b.dataset.g; b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; cs.hidden = cur !== 'chess'; tt.hidden = cur !== 'ttt'; sn.hidden = cur !== 'snake';
+    sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; cs.hidden = cur !== 'chess'; tt.hidden = cur !== 'ttt'; sn.hidden = cur !== 'snake'; gr.hidden = cur !== 'mgr';
     if (BOARD[cur] && !built[cur] && window.boardGames) { window.boardGames[cur](PANELS[cur]); built[cur] = true; }
     lbb.hidden = !!BOARD[cur]; if (BOARD[cur]) { lb.hidden = true; lbb.classList.remove('on'); lbb.setAttribute('aria-expanded', false); }
     wd.hidden = cur !== 'wordle'; mm.hidden = cur !== 'memory'; if (G[cur]) intro(); if (cur === 'wordle' && !W.ans) wStart(false); if (cur === 'memory' && !M.cards) mStart(); if (!lb.hidden) showBoard(); if (!gh.hidden) guide(); });
