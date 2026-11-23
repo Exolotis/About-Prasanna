@@ -338,8 +338,22 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media(max-width:720px){.grdex{grid-template-columns:1fr 1fr}.grstage{overflow:visible}.grbox{position:static;margin-top:10px;font-size:13px;padding:12px}.grwild i{width:42px;height:42px;font-size:20px}}
 
 /* Right now */
-.nwgrid{display:grid;grid-template-columns:1.25fr 1fr;grid-template-rows:auto auto;gap:14px;margin-top:56px}
-.nwcard{position:relative;border-radius:30px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);padding:26px;overflow:hidden}
+.nwwrap{position:relative;margin-top:56px}
+/* soft coloured light behind the cards, so the frosted glass has something to blur */
+.nwglow{position:absolute;inset:-40px -20px;pointer-events:none;z-index:0}
+.nwglow i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.22}
+.nwglow i:nth-child(1){width:42%;height:60%;left:2%;top:8%;background:#3d5afe}
+.nwglow i:nth-child(2){width:36%;height:50%;right:4%;top:0;background:#30d158;opacity:.14}
+.nwglow i:nth-child(3){width:40%;height:46%;right:18%;bottom:0;background:#bf5af2;opacity:.16}
+.nwgrid{position:relative;z-index:1;display:grid;grid-template-columns:1.25fr 1fr;gap:14px}
+/* the glass card */
+.nwcard{position:relative;border-radius:28px;padding:24px;overflow:hidden;
+  background:linear-gradient(160deg,rgba(255,255,255,.085),rgba(255,255,255,.025) 60%);
+  -webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),inset 0 1px 0 rgba(255,255,255,.18),0 24px 60px -20px rgba(0,0,0,.6)}
+.nwcard::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(125deg,rgba(255,255,255,.1),transparent 32%)}
+.nwcard[hidden],.nwrow[hidden],.nwstatus[hidden]{display:none}
+/* the sky card */
 .nwsky{grid-row:span 2;min-height:340px;display:flex;align-items:flex-end;color:#fff;transition:background 1.2s}
 .nwsky[data-phase=night]{background:linear-gradient(180deg,#0a0f24,#1b2452 75%)}
 .nwsky[data-phase=morning]{background:linear-gradient(180deg,#7fa6d8,#f2b48c 80%)}
@@ -354,37 +368,52 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .nworb{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;transition:left 2s,top 2s}
 .nworb.sun{background:radial-gradient(circle,#fff6d6,#ffd36b 60%);box-shadow:0 0 50px 12px rgba(255,214,107,.45)}
 .nworb.moon{background:#eef1fb;box-shadow:0 0 40px 8px rgba(220,228,255,.25)}
-.nworb.moon::after{content:"";position:absolute;width:44px;height:44px;border-radius:50%;top:-6px;left:14px;background:#141a3a;opacity:.9}
-.nwsky[data-phase=night] .nworb.moon::after{background:#0e1430}
+.nworb.moon::after{content:"";position:absolute;width:44px;height:44px;border-radius:50%;top:-6px;left:14px;background:#0e1430;opacity:.92}
 .nwrain{position:absolute;inset:0;opacity:0;background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(255,255,255,.18) 14px 15px);background-size:200% 200%;animation:nwrain .6s linear infinite}
 .nwsky[data-wet="1"] .nwrain{opacity:.6}
 @keyframes nwrain{to{background-position:-30px 60px}}
 .nwhills{position:absolute;left:0;right:0;bottom:0;width:100%;height:42%}
 .nwhills .h1{fill:rgba(0,0,0,.28)}.nwhills .h2{fill:rgba(0,0,0,.42)}
+.nwstatus{position:absolute;top:18px;left:18px;z-index:2;display:flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:999px;font:600 13px var(--f);color:#fff;
+  background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
 .nwclock{position:relative;z-index:1}
 .nwphase{display:block;font:600 12px var(--f);letter-spacing:.12em;text-transform:uppercase;opacity:.85}
 .nwtime{font:600 clamp(44px,6vw,64px)/1 var(--f);letter-spacing:-.04em;margin-top:6px}
 .nwtime small{font-size:.38em;letter-spacing:0;margin-left:6px;opacity:.85}
 .nwclock p{margin:10px 0 0;font:500 14px var(--f);opacity:.9}
 .nwwx:not(:empty)::before{content:"· "}
+/* card headers and text */
 .nwhead{display:flex;align-items:center;gap:8px;font:600 12.5px var(--f);color:var(--mute);letter-spacing:.02em}
 .nwhead em{font-style:normal;color:var(--faint)}
 .nwdot{width:8px;height:8px;border-radius:50%;background:var(--faint)}.nwdot.on{background:#30d158;box-shadow:0 0 10px #30d158}
+.nwsp{width:17px;height:17px;color:#1ed760;flex:none}.nwytl{width:18px;height:18px;color:#ff3b30;flex:none}
 .nwbuild b{display:block;margin-top:14px;font:600 21px var(--f);letter-spacing:-.02em}
 .nwbuild p{margin:8px 0 0;color:var(--mute);font-size:15px;line-height:1.55}
-.nwtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.nwtags span{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--ink2);font:600 12px var(--f)}
-.nwmusic[hidden]{display:none}
-.nwsong{display:flex;align-items:center;gap:14px;margin-top:14px;color:inherit;text-decoration:none}
+.nwtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.nwtags span{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);color:var(--ink2);font:600 12px var(--f)}
+/* Spotify */
+.nwsong{display:flex;align-items:center;gap:14px;margin-top:14px;color:inherit;text-decoration:none;position:relative;z-index:1}
 .nwsong img,.nwart0{flex:none;width:62px;height:62px;border-radius:14px;object-fit:cover;background:rgba(255,255,255,.08);box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .nwtxt{min-width:0;flex:1}.nwtxt b{display:block;font:600 17px var(--f);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nwtxt small{display:block;margin-top:3px;color:var(--mute);font:500 14px var(--f);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nwsong:hover b{text-decoration:underline}
-.nweq{display:flex;align-items:flex-end;gap:3px;height:18px}.nweq i{width:3px;background:#30d158;border-radius:2px;animation:nweq 1s ease-in-out infinite}
+.nweq{display:flex;align-items:flex-end;gap:3px;height:18px}.nweq i{width:3px;background:#1ed760;border-radius:2px;animation:nweq 1s ease-in-out infinite}
 .nweq i:nth-child(2){animation-delay:-.3s}.nweq i:nth-child(3){animation-delay:-.6s}.nweq i:nth-child(4){animation-delay:-.15s}
 @keyframes nweq{0%,100%{height:30%}50%{height:100%}}
-.nwbar{height:4px;margin-top:16px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}.nwbar i{display:block;height:100%;width:0;background:#f5f5f7;border-radius:999px;transition:width 1s linear}
+.nwbar{height:4px;margin-top:16px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.nwbar i{display:block;height:100%;width:0;background:#f5f5f7;border-radius:999px;transition:width 1s linear}
 .nwnums{display:flex;justify-content:space-between;margin-top:6px;color:var(--faint);font:500 11.5px var(--f)}
 #now.nwsolo .nwbuild{grid-row:span 2}
-@media(max-width:900px){.nwgrid{grid-template-columns:1fr}.nwsky{grid-row:auto;min-height:260px}#now.nwsolo .nwbuild{grid-row:auto}}
+/* bottom row: reading, this week, latest video */
+.nwrow{grid-column:1/-1;display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:14px}
+.nwbook{display:flex;align-items:center;gap:14px;margin-top:14px;position:relative;z-index:1}
+.nwcover{flex:none;width:52px;height:76px;border-radius:6px;overflow:hidden;display:grid;place-items:center;background:rgba(255,255,255,.08);box-shadow:0 8px 22px rgba(0,0,0,.45);font-size:24px}
+.nwcover img{width:100%;height:100%;object-fit:cover}
+.nwbook b{display:block;font:600 16px/1.3 var(--f)}.nwbook small{display:block;margin-top:4px;color:var(--mute);font:500 13.5px var(--f)}
+.nwweek p{margin:14px 0 0;font:500 16px/1.5 var(--f);color:var(--ink2,#e5e5ea);position:relative;z-index:1}
+.nwyt a{display:flex;align-items:center;gap:14px;margin-top:14px;color:inherit;text-decoration:none;position:relative;z-index:1}
+.nwthumb{flex:none;width:96px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.08);box-shadow:0 8px 22px rgba(0,0,0,.45)}
+.nwthumb img{width:100%;height:100%;object-fit:cover}
+.nwvid{min-width:0}.nwvid b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:600 15px/1.3 var(--f)}.nwvid small{display:block;margin-top:4px;color:var(--mute);font:500 12.5px var(--f)}
+.nwyt a:hover b{text-decoration:underline}
+@media(max-width:900px){.nwgrid,.nwrow{grid-template-columns:1fr}.nwsky{grid-row:auto;min-height:260px}#now.nwsolo .nwbuild{grid-row:auto}}
 @media(prefers-reduced-motion:reduce){.nwstars i,.nwrain,.nweq i{animation:none}}
 </style>
 </head>
@@ -570,22 +599,31 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <section id="now">
   <div class="wrap">
     <div class="kick rv">Right now</div>
-    <h2 class="rv">Live from Pune. <span class="g">Updated as it happens.</span></h2>
-    <div class="nwgrid rv">
-      <div class="nwcard nwsky" data-phase="night" aria-hidden="false">
-        <div class="nwstars" aria-hidden="true"></div>
-        <div class="nworb moon" aria-hidden="true"></div>
-        <div class="nwrain" aria-hidden="true"></div>
-        <svg class="nwhills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path class="h1" d="M0 70 C60 40 110 50 160 62 S260 30 320 48 S380 60 400 52 V120 H0Z"/><path class="h2" d="M0 92 C70 70 130 84 200 80 S320 64 400 78 V120 H0Z"/></svg>
-        <div class="nwclock"><span class="nwphase">Night</span><div class="nwtime">12:00<small>AM</small></div><p>Pune, India · IST <span class="nwwx"></span></p></div>
+    <h2 class="rv">Live from <span class="nwcity">Bengaluru.</span> <span class="g">Updated as it happens.</span></h2>
+    <div class="nwwrap rv">
+      <div class="nwglow" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="nwgrid">
+        <div class="nwcard nwsky" data-phase="night">
+          <div class="nwstars" aria-hidden="true"></div>
+          <div class="nworb moon" aria-hidden="true"></div>
+          <div class="nwrain" aria-hidden="true"></div>
+          <svg class="nwhills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path class="h1" d="M0 70 C60 40 110 50 160 62 S260 30 320 48 S380 60 400 52 V120 H0Z"/><path class="h2" d="M0 92 C70 70 130 84 200 80 S320 64 400 78 V120 H0Z"/></svg>
+          <div class="nwstatus" hidden></div>
+          <div class="nwclock"><span class="nwphase">Night</span><div class="nwtime">12:00<small>AM</small></div><p><span class="nwwhere">Bengaluru, India · IST</span> <span class="nwwx"></span></p></div>
+        </div>
+        <div class="nwcard nwbuild">
+          <div class="nwhead"><span class="nwdot on"></span>Building</div>
+          <b>The Moluscca API</b>
+          <p>Risk maths and checked India climate and economic data, in one request. In team beta, launching soon.</p>
+          <div class="nwtags"><span>Node</span><span>Supabase</span><span>Render</span></div>
+        </div>
+        <div class="nwcard nwmusic" hidden></div>
+        <div class="nwrow" hidden>
+          <div class="nwcard nwread" hidden><div class="nwhead">📚 Reading</div><div class="nwbook"><span class="nwcover"></span><span><b></b><small></small></span></div></div>
+          <div class="nwcard nwweek" hidden><div class="nwhead">🗓️ This week</div><p></p></div>
+          <div class="nwcard nwyt" hidden><div class="nwhead"><svg class="nwytl" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>Latest video</div><a target="_blank" rel="noopener"><span class="nwthumb"></span><span class="nwvid"><b></b><small></small></span></a></div>
+        </div>
       </div>
-      <div class="nwcard nwbuild">
-        <div class="nwhead"><span class="nwdot on"></span>Building</div>
-        <b>The Moluscca API</b>
-        <p>Risk maths and checked India climate and economic data, in one request. In team beta, launching soon.</p>
-        <div class="nwtags"><span>Node</span><span>Supabase</span><span>Render</span></div>
-      </div>
-      <div class="nwcard nwmusic" hidden></div>
     </div>
   </div>
 </section>

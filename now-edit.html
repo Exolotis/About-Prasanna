@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Edit Right now</title>
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--f:'Albert Sans',-apple-system,BlinkMacSystemFont,sans-serif;--mute:#86868b;--line:rgba(255,255,255,.1)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#000;color:#f5f5f7;font:15px/1.5 var(--f);display:grid;place-items:start center;padding:48px 16px}
+main{width:min(620px,100%)}
+h1{font:600 34px/1.1 var(--f);letter-spacing:-.03em;margin:0 0 6px}
+.sub{color:var(--mute);margin:0 0 28px}
+.card{border-radius:24px;padding:22px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.025));box-shadow:inset 0 0 0 1px var(--line);margin-bottom:14px}
+.card h2{font:600 13px var(--f);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+label{display:block;font:600 13px var(--f);color:#d1d1d6;margin:12px 0 6px}
+input,textarea{width:100%;padding:12px 14px;border:0;border-radius:12px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--line);color:#f5f5f7;font:500 15px var(--f);outline:none}
+input:focus,textarea:focus{box-shadow:inset 0 0 0 1.5px #0a84ff}
+textarea{min-height:70px;resize:vertical}
+.row{display:grid;grid-template-columns:90px 1fr;gap:10px}
+.hint{color:var(--mute);font-size:12.5px;margin-top:4px}
+button{height:44px;padding:0 20px;border:0;border-radius:999px;background:#f5f5f7;color:#000;font:600 15px var(--f);cursor:pointer}
+button.ghost{background:rgba(255,255,255,.08);color:#f5f5f7}
+button:disabled{opacity:.5;cursor:default}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.msg{color:var(--mute);font-size:14px}.msg.ok{color:#30d158}.msg.bad{color:#ff453a}
+.emojis{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.emojis button{height:34px;padding:0 10px;background:rgba(255,255,255,.07);color:#fff;font-size:16px}
+[hidden]{display:none!important}
+a{color:#0a84ff}
+</style>
+</head>
+<body>
+<main>
+  <h1>Right now</h1>
+  <p class="sub">Change what shows on <a href="/#now">prasanna.lol</a>. Only admins can save.</p>
+
+  <section id="signin" class="card">
+    <h2>Sign in</h2>
+    <div id="step1">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="you@moluscca.com">
+      <div class="bar"><button id="send">Email me a code</button><span class="msg" id="m1"></span></div>
+    </div>
+    <div id="step2" hidden>
+      <label for="code">Code from the email</label>
+      <input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" maxlength="10">
+      <div class="bar"><button id="verify">Sign in</button><button class="ghost" id="back">Use another email</button><span class="msg" id="m2"></span></div>
+    </div>
+  </section>
+
+  <form id="form" hidden>
+    <section class="card">
+      <h2>Where and how you are</h2>
+      <label for="city">City</label><input id="city" maxlength="40" placeholder="Bengaluru">
+      <div class="hint">The clock, weather and time zone follow this city.</div>
+      <label>Status</label>
+      <div class="row"><input id="status_emoji" maxlength="8" placeholder="🟢"><input id="status_text" maxlength="40" placeholder="Open for a chat"></div>
+      <div class="emojis" id="quick"></div>
+    </section>
+    <section class="card">
+      <h2>Building</h2>
+      <label for="building_title">Title</label><input id="building_title" maxlength="60">
+      <label for="building_text">One or two lines</label><textarea id="building_text" maxlength="220"></textarea>
+      <label for="building_tags">Tags, separated by commas</label><input id="building_tags" maxlength="80" placeholder="Node, Supabase, Render">
+    </section>
+    <section class="card">
+      <h2>Reading</h2>
+      <label for="reading_title">Book title</label><input id="reading_title" maxlength="120" placeholder="Leave empty to hide">
+      <label for="reading_author">Author</label><input id="reading_author" maxlength="80">
+      <div class="hint">The cover is found by itself.</div>
+    </section>
+    <section class="card">
+      <h2>This week</h2>
+      <label for="this_week">One line</label><textarea id="this_week" maxlength="160" placeholder="Leave empty to hide"></textarea>
+    </section>
+    <div class="bar"><button id="save" type="submit">Save</button><button class="ghost" type="button" id="out">Sign out</button><span class="msg" id="m3"></span></div>
+  </form>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<script>
+/* Edit the Right now cards. Sign in with an emailed code; the database only lets admins save. */
+(function () {
+  var db = supabase.createClient('https://orhlwvmxnsztwhfimjru.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs');
+  var FIELDS = ['city', 'status_emoji', 'status_text', 'building_title', 'building_text', 'building_tags', 'reading_title', 'reading_author', 'this_week'];
+  var STATUSES = [['🟢', 'Open for a chat'], ['🎧', 'Deep work'], ['💼', 'At Dodo'], ['🐙', 'Building Moluscca'], ['✈️', 'Travelling'], ['🌙', 'Offline']];
+  var $ = function (id) { return document.getElementById(id); };
+  var say = function (el, text, kind) { el.textContent = text; el.className = 'msg' + (kind ? ' ' + kind : ''); };
+  var sentTo = '';
+
+  STATUSES.forEach(function (s) { var b = document.createElement('button'); b.type = 'button'; b.textContent = s[0] + ' ' + s[1]; b.onclick = function () { $('status_emoji').value = s[0]; $('status_text').value = s[1]; }; $('quick').appendChild(b); });
+
+  function load() {
+    db.rpc('is_admin').then(function (r) {
+      if (!r.data) { say($('m2'), 'This account is not an admin.', 'bad'); $('signin').hidden = false; $('form').hidden = true; return; }
+      return db.from('now_cards').select('*').eq('id', 1).single().then(function (q) {
+        if (q.error) { say($('m3'), 'Could not load: ' + q.error.message + ' (has tools/now.sql been run?)', 'bad'); }
+        FIELDS.forEach(function (f) { $(f).value = (q.data && q.data[f]) || ''; });
+        $('signin').hidden = true; $('form').hidden = false;
+      });
+    });
+  }
+
+  $('send').onclick = function () {
+    var email = $('email').value.trim(); if (!email) return;
+    $('send').disabled = true; say($('m1'), 'Sending…');
+    db.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } }).then(function (r) {
+      $('send').disabled = false;
+      if (r.error) return say($('m1'), r.error.message, 'bad');
+      sentTo = email; $('step1').hidden = true; $('step2').hidden = false; say($('m2'), 'Code sent to ' + email + '.'); $('code').focus();
+    });
+  };
+  $('back').onclick = function () { $('step2').hidden = true; $('step1').hidden = false; };
+  $('verify').onclick = function () {
+    var code = $('code').value.replace(/\s/g, ''); if (!code) return;
+    $('verify').disabled = true; say($('m2'), 'Checking…');
+    db.auth.verifyOtp({ email: sentTo, token: code, type: 'email' }).then(function (r) {
+      $('verify').disabled = false;
+      if (r.error) return say($('m2'), r.error.message, 'bad');
+      load();
+    });
+  };
+  $('form').onsubmit = function (e) {
+    e.preventDefault(); $('save').disabled = true; say($('m3'), 'Saving…');
+    var row = {}; FIELDS.forEach(function (f) { row[f] = $(f).value.trim(); });
+    if (!row.city) row.city = 'Bengaluru';
+    db.from('now_cards').update(row).eq('id', 1).select().then(function (r) {
+      $('save').disabled = false;
+      if (r.error || !r.data || !r.data.length) return say($('m3'), 'Not saved: ' + (r.error ? r.error.message : 'no permission'), 'bad');
+      say($('m3'), 'Saved. It shows on the site within a minute.', 'ok');
+    });
+  };
+  $('out').onclick = function () { db.auth.signOut().then(function () { location.reload(); }); };
+
+  db.auth.getSession().then(function (r) { if (r.data && r.data.session) load(); });
+})();
+</script>
+</body></html>
