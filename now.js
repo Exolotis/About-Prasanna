@@ -102,7 +102,8 @@
       thumb.innerHTML = '<img src="https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg" alt="" loading="lazy"><span class="nwplay" aria-hidden="true"></span>';
       $('.nwyt .nwvid b').textContent = v.title;
       $('.nwyt .nwvid small').textContent = (v.channel || 'YouTube') + (v.published ? ' · ' + ago(v.published) : '');
-      $('.nwyt .nwplaybtn').onclick = () => openPlayer(v.id);
+      const btn = $('.nwyt .nwplaybtn'); btn.classList.remove('playing');
+      btn.onclick = () => playHere(btn, thumb, v.id);
       show('.nwyt', true); layout();
       // silent looping preview, started only once the card is on screen
       if (previewWatch) previewWatch.disconnect();
@@ -110,7 +111,7 @@
         previewWatch = new IntersectionObserver(list => {
           if (!list.some(e => e.isIntersecting)) return; previewWatch.disconnect();
           const f = document.createElement('iframe');
-          f.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&mute=1&loop=1&playlist=' + v.id + '&controls=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&disablekb=1';
+          f.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&mute=1&loop=1&playlist=' + v.id + '&controls=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&disablekb=1&cc_load_policy=0';
           f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.title = 'Video preview'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true');
           f.onload = () => setTimeout(() => thumb.classList.add('live'), 1200);   // fade in once it has started
           thumb.appendChild(f);
@@ -120,19 +121,13 @@
     } catch (e) { show('.nwyt', false); layout(); }
   };
 
-  // the full player with sound, over the page
-  const player = document.createElement('div'); player.className = 'nwplayer'; player.hidden = true;
-  player.setAttribute('role', 'dialog'); player.setAttribute('aria-modal', 'true'); player.setAttribute('aria-label', 'Video');
-  player.innerHTML = '<button type="button" class="nwpx" aria-label="Close">×</button><div class="nwpbox"></div>';
-  document.body.appendChild(player);
-  const closePlayer = () => { player.hidden = true; player.querySelector('.nwpbox').innerHTML = ''; document.documentElement.classList.remove('grlock'); };
-  const openPlayer = id => {
-    player.querySelector('.nwpbox').innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Video"></iframe>';
-    player.hidden = false; document.documentElement.classList.add('grlock'); player.querySelector('.nwpx').focus();
+  // click: swap the silent preview for the real player, with sound and controls, right inside the card
+  const playHere = (btn, thumb, id) => {
+    if (previewWatch) previewWatch.disconnect();
+    btn.onclick = null; btn.classList.add('playing');
+    thumb.className = 'nwthumb playing';
+    thumb.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&cc_load_policy=0" allow="autoplay; encrypted-media; picture-in-picture" title="Video"></iframe>';
   };
-  player.querySelector('.nwpx').onclick = closePlayer;
-  player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !player.hidden) closePlayer(); });
 
   // bottom row: as many columns as there are cards showing
   // the Building card is twice as wide as the others, so it counts as two columns
@@ -206,6 +201,78 @@
     });
     wl.addEventListener('click', e => { if (e.target === wl) closeWl(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !wl.hidden) closeWl(); });
+  }
+
+
+  /* ---------- Visitor picks: anyone can suggest a song (real Spotify cover), shown publicly ---------- */
+  const picks = $('.nwpicks');
+  if (picks) {
+    const strip = picks.querySelector('.nwpstrip');
+    const tile = p => '<a class="nwptile" href="https://open.spotify.com/track/' + esc(p.track_id) + '" target="_blank" rel="noopener">' +
+      (/^https:\/\/i\.scdn\.co\//.test(p.image) ? '<img src="' + esc(p.image) + '" alt="" loading="lazy">' : '<span class="nwart0"></span>') +
+      '<b>' + esc(p.title) + '</b><small>' + esc(p.artist) + '</small><em>' + (p.suggested_by ? 'by ' + esc(p.suggested_by) : 'by a visitor') + '</em></a>';
+    const loadPicks = async () => {
+      try {
+        const r = await fetch(SB + '/song_suggestions?select=track_id,title,artist,image,suggested_by,created_at&order=created_at.desc&limit=16', { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } });
+        if (!r.ok) throw 0;                                            // table not set up yet: hide the strip
+        const rows = await r.json();
+        strip.innerHTML = rows.length ? rows.map(tile).join('') : '<p class="nwpempty">No picks yet. Be the first to suggest a song.</p>';
+        picks.hidden = false; layout();
+      } catch (e) { picks.hidden = true; }
+    };
+
+    // the suggest window: search Spotify, pick a song, add your name, send
+    const sg = document.createElement('div'); sg.className = 'nwwl nwsg'; sg.hidden = true;
+    sg.setAttribute('role', 'dialog'); sg.setAttribute('aria-modal', 'true'); sg.setAttribute('aria-label', 'Suggest a song');
+    document.body.appendChild(sg);
+    const closeSg = () => { sg.hidden = true; document.documentElement.classList.remove('grlock'); };
+    const openSg = () => {
+      let chosen = null, timer = null, asked = 0;
+      sg.innerHTML = '<form class="nwwlbox" novalidate><button type="button" class="nwwlx" aria-label="Close">×</button>' +
+        '<span class="nwwltag nwsgtag">' + SPOTIFY + 'Suggest a song</span><h3>What should I listen to?</h3>' +
+        '<label for="nwsg-q">Search Spotify</label><input id="nwsg-q" maxlength="80" autocomplete="off" placeholder="Song or artist">' +
+        '<div class="nwsgres" role="listbox" aria-label="Results"></div>' +
+        '<label for="nwsg-by">Your name <span style="font-weight:500;color:var(--mute)">(optional)</span></label><input id="nwsg-by" maxlength="40" autocomplete="given-name">' +
+        '<input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">' +
+        '<button type="submit" class="nwwlgo" disabled>Pick a song first</button><p class="nwwlmsg" aria-live="polite"></p></form>';
+      const form = sg.querySelector('form'), q = sg.querySelector('#nwsg-q'), res = sg.querySelector('.nwsgres'), go = form.querySelector('.nwwlgo'), msg = form.querySelector('.nwwlmsg');
+      form.querySelector('.nwwlx').onclick = closeSg;
+      const showResults = list => {
+        res.innerHTML = list.length ? list.map((t, i) => '<button type="button" class="nwsgopt" role="option" data-i="' + i + '">' +
+          (/^https:\/\/i\.scdn\.co\//.test(t.image) ? '<img src="' + esc(t.image) + '" alt="">' : '<span class="nwart0"></span>') +
+          '<span><b>' + esc(t.title) + '</b><small>' + esc(t.artist) + '</small></span></button>').join('') : '<p class="nwpempty">No songs found.</p>';
+        res.querySelectorAll('.nwsgopt').forEach(b => b.onclick = () => {
+          chosen = list[+b.dataset.i]; res.querySelectorAll('.nwsgopt').forEach(x => x.classList.toggle('on', x === b));
+          go.disabled = false; go.textContent = 'Suggest this song';
+        });
+      };
+      q.oninput = () => {
+        clearTimeout(timer); chosen = null; go.disabled = true; go.textContent = 'Pick a song first';
+        const words = q.value.trim(); if (words.length < 2) { res.innerHTML = ''; return; }
+        timer = setTimeout(async () => {
+          const mine = ++asked; res.innerHTML = '<p class="nwpempty">Searching…</p>';
+          try { const r = await fetch('/api/song-search?q=' + encodeURIComponent(words)); const list = await r.json(); if (mine === asked) showResults(Array.isArray(list) ? list : []); }
+          catch (e) { if (mine === asked) res.innerHTML = '<p class="nwpempty">Search is resting. Try again soon.</p>'; }
+        }, 320);
+      };
+      form.onsubmit = async e => {
+        e.preventDefault(); if (!chosen) return; if (form.website.value) return closeSg();   // bots fill the hidden box
+        go.disabled = true; go.textContent = 'Sending…'; msg.textContent = '';
+        const by = sg.querySelector('#nwsg-by').value.trim().slice(0, 40);
+        try {
+          const r = await fetch(SB + '/song_suggestions', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+            body: JSON.stringify({ track_id: chosen.id, title: chosen.title.slice(0, 200), artist: chosen.artist.slice(0, 200), image: /^https:\/\/i\.scdn\.co\/image\//.test(chosen.image) ? chosen.image : '', suggested_by: by }) });
+          if (!r.ok) throw 0;
+          form.innerHTML = '<button type="button" class="nwwlx" aria-label="Close">×</button><span class="nwwltag nwsgtag">' + SPOTIFY + 'Added to Visitor picks</span><h3>Thanks' + (by ? ', ' + esc(by) : '') + '!</h3><p>' + esc(chosen.title) + ' is on the list. I will give it a listen.</p>';
+          form.querySelector('.nwwlx').onclick = closeSg; loadPicks();
+        } catch (e2) { go.disabled = false; go.textContent = 'Suggest this song'; msg.textContent = 'Could not send right now. Try again in a minute.'; }
+      };
+      sg.hidden = false; document.documentElement.classList.add('grlock'); q.focus();
+    };
+    picks.querySelector('.nwpadd').onclick = openSg;
+    sg.addEventListener('click', e => { if (e.target === sg) closeSg(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sg.hidden) closeSg(); });
+    loadPicks();
   }
 
   cards(); loadSong();

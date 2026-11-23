@@ -62,7 +62,7 @@ a{color:#0a84ff}
   </section>
 
   <div id="app" hidden>
-    <div class="tabs"><button class="on" data-tab="now">Right now</button><button data-tab="blog">Blog</button><button data-tab="gallery">Gallery</button></div>
+    <div class="tabs"><button class="on" data-tab="now">Right now</button><button data-tab="blog">Blog</button><button data-tab="gallery">Gallery</button><button data-tab="songs">Songs</button></div>
 
     <!-- RIGHT NOW -->
     <form id="tab-now">
@@ -118,6 +118,9 @@ a{color:#0a84ff}
       <div class="two"><div><label for="np1">New password</label><input id="np1" type="password" autocomplete="new-password" minlength="10"></div>
         <div><label for="np2">Type it again</label><input id="np2" type="password" autocomplete="new-password" minlength="10"></div></div>
       <div class="bar"><button class="ghost" id="setpass">Set password</button><span class="msg" id="m6"></span></div></section>
+    <!-- SONGS -->
+    <div id="tab-songs" hidden><section class="card"><h2>Visitor picks</h2><p class="hint" style="margin:0 0 12px">Songs visitors suggested. They show publicly on the site; delete any you do not want there.</p><div class="list" id="songs"></div></section></div>
+
     <div class="bar"><button class="ghost" id="out">Sign out</button></div>
   </div>
   <input type="file" id="pick" accept="image/*" hidden>
@@ -178,7 +181,7 @@ a{color:#0a84ff}
   function start() {
     db.rpc('now_can_edit').then(function (r) {
       if (!r.data) { say($('m2'), 'This account is not allowed to edit.', 'bad'); db.auth.signOut(); return; }
-      $('signin').hidden = true; $('app').hidden = false; loadNow(); loadPosts(); loadPhotos();
+      $('signin').hidden = true; $('app').hidden = false; loadNow(); loadPosts(); loadPhotos(); loadSongs();
     });
   }
 
@@ -186,11 +189,11 @@ a{color:#0a84ff}
   document.querySelectorAll('.tabs button').forEach(function (b) {
     b.onclick = function () {
       document.querySelectorAll('.tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
-      ['now', 'blog', 'gallery'].forEach(function (t) { $('tab-' + t).hidden = t !== b.dataset.tab; });
+      ['now', 'blog', 'gallery', 'songs'].forEach(function (t) { $('tab-' + t).hidden = t !== b.dataset.tab; });
       history.replaceState(null, '', '#' + b.dataset.tab);
     };
   });
-  if (/^#(blog|gallery)$/.test(location.hash)) document.querySelector('[data-tab=' + location.hash.slice(1) + ']').click();
+  if (/^#(blog|gallery|songs)$/.test(location.hash)) document.querySelector('[data-tab=' + location.hash.slice(1) + ']').click();
 
   /* ---------- images: shrink in the browser, then upload ---------- */
   function shrink(file, max) {
@@ -284,6 +287,23 @@ a{color:#0a84ff}
     if (!editing || !confirm('Delete this post for good?')) return;
     db.from('blog_posts').delete().eq('id', editing).then(function (r) { if (r.error) return say($('m4'), r.error.message, 'bad'); $('cancel').click(); });
   };
+
+  /* ---------- Songs visitors suggested ---------- */
+  function loadSongs() {
+    db.from('song_suggestions').select('id,track_id,title,artist,image,suggested_by,created_at').order('created_at', { ascending: false }).limit(200).then(function (r) {
+      var rows = r.data || [];
+      if (r.error) { $('songs').innerHTML = '<p class="hint">Run tools/songs.sql in Supabase to turn this on.</p>'; return; }
+      $('songs').innerHTML = rows.length ? rows.map(function (x) {
+        return '<div class="item">' + (/^https:\/\/i\.scdn\.co\//.test(x.image) ? '<img src="' + esc(x.image) + '" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:cover">' : '') +
+          '<b>' + esc(x.title) + ' <small>· ' + esc(x.artist) + '</small></b><small>by ' + esc(x.suggested_by || 'a visitor') + ' · ' + new Date(x.created_at).toLocaleDateString() + '</small>' +
+          '<a href="https://open.spotify.com/track/' + esc(x.track_id) + '" target="_blank" rel="noopener">Play</a><button class="danger sm" data-del="' + x.id + '">Delete</button></div>';
+      }).join('') : '<p class="hint">No suggestions yet.</p>';
+      $('songs').querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () {
+        if (!confirm('Remove this suggestion from the site?')) return;
+        db.from('song_suggestions').delete().eq('id', b.dataset.del).then(function (d) { if (!d.error) b.closest('.item').remove(); });
+      }; });
+    });
+  }
 
   /* ---------- Gallery ---------- */
   function loadPhotos() {
