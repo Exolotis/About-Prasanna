@@ -13,7 +13,16 @@
      White pieces are capital letters (P N B R Q K), black pieces are small letters.
      ===================================================================== */
   const VALUE = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
-  const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+  // flat, simple piece drawings (40 x 40). "cut" lines are drawn in the opposite colour.
+  const BASE = '<rect x="10" y="31" width="20" height="4" rx="2"/>';
+  const SHAPE = {
+    p: '<circle cx="20" cy="14" r="5"/><path d="M14.5 30c.4-5.5 2.2-9 5.5-9s5.1 3.5 5.5 9z"/>' + BASE,
+    r: '<path d="M12.5 9h4v3h2v-3h3v3h2v-3h4v6.5l-2.5 2V28l2 2h-15l2-2V17.5l-2.5-2z"/>' + BASE,
+    n: '<path d="M14 30c-.3-4.5 1.5-7.5 4.5-10l-5 1.5-2-2.5 6.5-8 2-3.5 1.5 2.5c5.5 1.5 8.5 6.5 8.5 13V30z"/><circle class="dot" cx="19.5" cy="12.5" r="1.3"/>' + BASE,
+    b: '<circle cx="20" cy="6.5" r="2.2"/><path d="M20 9.5c5 3.5 6.8 8 5.8 12-.6 2.4-2.3 3.6-2.3 5L24.5 30h-9l1-3.5c0-1.4-1.7-2.6-2.3-5-1-4 .8-8.5 5.8-12z"/><path class="cut" d="M22 14.5l-3.5 4.5"/>' + BASE,
+    q: '<circle cx="11" cy="11.5" r="2.2"/><circle cx="20" cy="8" r="2.2"/><circle cx="29" cy="11.5" r="2.2"/><path d="M11 13l3 13h12l3-13-5.5 6.5L20 10l-3.5 9.5z"/><path d="M14 26.5h12l1 3.5H13z"/>' + BASE,
+    k: '<rect x="19" y="3.5" width="2" height="9" rx="1"/><rect x="16" y="6" width="8" height="2" rx="1"/><path d="M12.5 15.5c3-2.5 12-2.5 15 0L25 26.5H15z"/><path d="M14 26.5h12l1 3.5H13z"/>' + BASE
+  };
   const sideOf = p => p ? (p === p.toUpperCase() ? 'w' : 'b') : null;
   const other = side => side === 'w' ? 'b' : 'w';
   const onBoard = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
@@ -166,7 +175,7 @@
       const checkSq = inCheck(S) ? kingSquare(S.b, S.turn) : -1;
       squares.forEach((sq, i) => {
         const p = S.b[i];
-        sq.innerHTML = p ? '<span class="pc ' + sideOf(p) + '">' + GLYPH[p.toLowerCase()] + '︎</span>' : '';
+        sq.innerHTML = p ? '<svg class="pc ' + sideOf(p) + '" viewBox="0 0 40 40" aria-hidden="true">' + SHAPE[p.toLowerCase()] + '</svg>' : '';
         sq.classList.toggle('pick', i === picked);
         sq.classList.toggle('last', !!last && (i === last.from || i === last.to));
         sq.classList.toggle('chk', i === checkSq);
