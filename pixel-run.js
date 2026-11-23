@@ -22,16 +22,16 @@
     'background:rgba(22,22,24,.82);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);' +
     'color:#f5f5f7;font:600 13px var(--f);letter-spacing:-.01em;white-space:nowrap;opacity:0;transform:translateX(8px);transition:opacity .3s,transform .3s}' +
     '.prt.on{opacity:1;transform:none}.prt i{width:7px;height:7px;border-radius:50%;background:#30d158;box-shadow:0 0 8px #30d158}.prt small{color:#86868b;font-weight:500;font-size:13px}' +
-    '@media(max-width:720px){.prt{right:30px}}';
+    '@media(max-width:720px){.prt{right:36px;height:28px;padding:0 11px;gap:6px;font-size:12px}.prt small{font-size:12px}}';
   document.head.append(css); document.body.append(cv, pill);
   const ctx = cv.getContext('2d');
 
   let W, H, trackX, top, bottom, ratio = 1, phone = false;
   const size = () => {
     phone = innerWidth <= 720;
-    W = phone ? 26 : 52; H = innerHeight; ratio = devicePixelRatio || 1;
+    W = phone ? 32 : 52; H = innerHeight; ratio = devicePixelRatio || 1;
     cv.style.width = W + 'px'; cv.style.height = H + 'px'; cv.width = W * ratio; cv.height = H * ratio;
-    trackX = phone ? W - 9 : W - 20; top = phone ? 76 : 96; bottom = H - (phone ? 100 : 116);   // stays above the floating Book a call button
+    trackX = phone ? W - 8 : W - 20; top = phone ? 76 : 96; bottom = H - (phone ? 100 : 116);   // stays above the floating Book a call button
   };
   size();
 
@@ -59,9 +59,9 @@
 
   /* ---------- drawing helpers ---------- */
   const rounded = (x, y, w, h, r, fill) => { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fillStyle = fill; ctx.fill(); };
-  const figure = (x, y, colour) => {                        // a small flat person: round head, rounded body
-    ctx.fillStyle = colour; ctx.beginPath(); ctx.arc(x, y - 11, 2.6, 0, 7); ctx.fill();
-    rounded(x - 3.5, y - 7.5, 7, 7.5, 3, colour);
+  const figure = (x, y, colour, k) => {                     // a small flat person: round head, rounded body (k = size)
+    ctx.fillStyle = colour; ctx.beginPath(); ctx.arc(x, y - 11 * k, 2.6 * k, 0, 7); ctx.fill();
+    rounded(x - 3.5 * k, y - 7.5 * k, 7 * k, 7.5 * k, 3 * k, colour);
   };
   const lock = (x, y, open) => {                            // padlock: body plus a shackle that lifts when opened
     const c = open ? GREEN : 'rgba(245,245,247,.45)', lift = open ? 3 : 0;
@@ -78,7 +78,7 @@
     trail = trail.filter(t => (t.life -= .05) > 0).slice(-16);
 
     marks.forEach((m, i) => {
-      if (!cleared[i] && p >= m) { cleared[i] = true; hop[i] = 1; if (!phone) say('Level ' + (i + 1) + ' cleared', LEVELS[i].name, yOf(m)); }
+      if (!cleared[i] && p >= m) { cleared[i] = true; hop[i] = 1; say('Level ' + (i + 1) + ' cleared', LEVELS[i].name, yOf(m)); }
       if (cleared[i] && p < m - .02) cleared[i] = false;                 // scroll back up and you can clear it again
     });
     if (!opened && p > .985) unlock();
@@ -93,7 +93,7 @@
       ctx.beginPath(); ctx.arc(trackX, y, 3.2, 0, 7);
       if (done) { ctx.fillStyle = WHITE; ctx.fill(); } else { ctx.fillStyle = '#000'; ctx.fill(); ctx.strokeStyle = 'rgba(245,245,247,.35)'; ctx.lineWidth = 1; ctx.stroke(); }
       const lift = hop[i] > 0 ? Math.sin(hop[i] * Math.PI) * 6 : 0; if (hop[i] > 0) hop[i] = Math.max(0, hop[i] - .04);
-      if (!phone) figure(trackX - 13, y + 4 - lift, done ? GREEN : 'rgba(245,245,247,.28)');
+      figure(trackX - (phone ? 12 : 13), y + 4 - lift, done ? GREEN : 'rgba(245,245,247,.28)', phone ? .8 : 1);
     });
     // the lock at the end of the line
     if (glow > 0) { ctx.fillStyle = 'rgba(48,209,88,' + (glow * .25).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(trackX, bottom + 3, 16 * (1.4 - glow * .4), 0, 7); ctx.fill(); glow = Math.max(0, glow - .012); }
