@@ -43,6 +43,14 @@
     {
       "source": "/now-edit",
       "destination": "/now-edit.html"
+    },
+    {
+      "source": "/studio",
+      "destination": "/studio.html"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/post.html"
     }
   ]
 }

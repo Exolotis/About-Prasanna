@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Studio</title>
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--f:'Albert Sans',-apple-system,BlinkMacSystemFont,sans-serif;--mute:#86868b;--line:rgba(255,255,255,.1)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#000;color:#f5f5f7;font:15px/1.5 var(--f);padding:40px 16px 80px}
+main{width:min(860px,100%);margin:0 auto}
+h1{font:600 34px/1.1 var(--f);letter-spacing:-.03em;margin:0 0 6px}
+.sub{color:var(--mute);margin:0 0 22px}
+.card{border-radius:22px;padding:22px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.025));box-shadow:inset 0 0 0 1px var(--line);margin-bottom:14px}
+.card h2{font:600 13px var(--f);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+label{display:block;font:600 13px var(--f);color:#d1d1d6;margin:12px 0 6px}
+input,textarea,select{width:100%;padding:12px 14px;border:0;border-radius:12px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--line);color:#f5f5f7;font:500 15px var(--f);outline:none}
+input:focus,textarea:focus{box-shadow:inset 0 0 0 1.5px #0a84ff}
+textarea{min-height:80px;resize:vertical}
+#p_body{min-height:340px;font:14px/1.6 ui-monospace,Menlo,Consolas,monospace}
+.row{display:grid;grid-template-columns:90px 1fr;gap:10px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hint{color:var(--mute);font-size:12.5px;margin-top:4px}
+button{height:42px;padding:0 18px;border:0;border-radius:999px;background:#f5f5f7;color:#000;font:600 14.5px var(--f);cursor:pointer}
+button.ghost{background:rgba(255,255,255,.08);color:#f5f5f7}button.danger{background:rgba(255,69,58,.16);color:#ff6961}
+button.sm{height:34px;padding:0 13px;font-size:13px}
+button:disabled{opacity:.5;cursor:default}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.msg{color:var(--mute);font-size:14px}.msg.ok{color:#30d158}.msg.bad{color:#ff453a}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chips button{height:32px;padding:0 10px;background:rgba(255,255,255,.07);color:#fff;font-size:14px}
+.tabs{display:flex;gap:6px;padding:4px;border-radius:999px;background:rgba(255,255,255,.06);width:max-content;margin-bottom:18px}
+.tabs button{height:36px;background:none;color:var(--mute)}.tabs button.on{background:#f5f5f7;color:#000}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05)}
+.item b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item small{color:var(--mute)}
+.pill{font:600 11.5px var(--f);padding:3px 8px;border-radius:999px;background:rgba(48,209,88,.15);color:#30d158}.pill.draft{background:rgba(255,255,255,.08);color:var(--mute)}
+.cover{width:100%;max-height:220px;object-fit:cover;border-radius:14px;margin-top:10px}
+.preview{padding:18px;border-radius:14px;background:rgba(255,255,255,.04);line-height:1.7}.preview img{max-width:100%;border-radius:10px}.preview pre{overflow:auto;background:#000;padding:12px;border-radius:10px}
+.drop{display:grid;place-items:center;text-align:center;padding:34px;border-radius:18px;border:1.5px dashed rgba(255,255,255,.22);color:var(--mute);cursor:pointer}
+.drop.over{border-color:#0a84ff;color:#fff}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.ph{border-radius:16px;overflow:hidden;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--line)}
+.ph img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}.ph div{padding:10px}.ph input{margin-top:6px;padding:9px 11px;font-size:14px}
+[hidden]{display:none!important}
+a{color:#0a84ff}
+@media(max-width:640px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Studio</h1>
+  <p class="sub">Write, upload and update <a href="/">prasanna.lol</a>. Only the owner can save.</p>
+
+  <section id="signin" class="card">
+    <h2>Sign in</h2>
+    <div id="step1"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@moluscca.com">
+      <div class="bar"><button id="send">Email me a code</button><span class="msg" id="m1"></span></div></div>
+    <div id="step2" hidden><label for="code">Code from the email</label><input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" maxlength="10">
+      <div class="bar"><button id="verify">Sign in</button><button class="ghost" id="back">Use another email</button><span class="msg" id="m2"></span></div></div>
+  </section>
+
+  <div id="app" hidden>
+    <div class="tabs"><button class="on" data-tab="now">Right now</button><button data-tab="blog">Blog</button><button data-tab="gallery">Gallery</button></div>
+
+    <!-- RIGHT NOW -->
+    <form id="tab-now">
+      <section class="card"><h2>Where and how you are</h2>
+        <label for="city">City</label><input id="city" maxlength="40" placeholder="Bengaluru"><div class="hint">The clock, weather and time zone follow this city.</div>
+        <label>Status</label><div class="row"><input id="status_emoji" maxlength="8" placeholder="🟢"><input id="status_text" maxlength="40" placeholder="Open for a chat"></div>
+        <div class="chips" id="quick"></div></section>
+      <section class="card"><h2>Building</h2>
+        <label for="building_title">Title</label><input id="building_title" maxlength="60">
+        <label for="building_text">One or two lines</label><textarea id="building_text" maxlength="220"></textarea>
+        <label for="building_tags">Tags, separated by commas</label><input id="building_tags" maxlength="80"></section>
+      <section class="card"><h2>Reading</h2>
+        <div class="two"><div><label for="reading_title">Book title</label><input id="reading_title" maxlength="120" placeholder="Leave empty to hide"></div><div><label for="reading_author">Author</label><input id="reading_author" maxlength="80"></div></div>
+        <div class="hint">The cover is found by itself.</div></section>
+      <section class="card"><h2>This week</h2><textarea id="this_week" maxlength="160" placeholder="Leave empty to hide"></textarea></section>
+      <div class="bar"><button type="submit" id="nowsave">Save</button><span class="msg" id="m3"></span></div>
+    </form>
+
+    <!-- BLOG -->
+    <div id="tab-blog" hidden>
+      <section class="card" id="postlist"><h2>Your posts</h2>
+        <div class="bar" style="margin:0 0 12px"><button id="newpost">+ New post</button></div>
+        <div class="list" id="posts"></div></section>
+      <form class="card" id="editor" hidden>
+        <h2 id="edtitle">New post</h2>
+        <label for="p_title">Title</label><input id="p_title" maxlength="120" required>
+        <label for="p_slug">Web address</label><input id="p_slug" maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" required><div class="hint">prasanna.lol/blog/<b id="slugshow">…</b></div>
+        <label for="p_summary">Short summary (shows on the card)</label><textarea id="p_summary" maxlength="240" style="min-height:60px"></textarea>
+        <div class="two"><div><label for="p_tags">Tags, separated by commas</label><input id="p_tags" maxlength="80" placeholder="risk, india, notes"></div>
+          <div><label>Cover photo</label><div class="bar" style="margin:0"><button type="button" class="ghost sm" id="coverbtn">Upload cover</button><button type="button" class="ghost sm" id="coverx" hidden>Remove</button></div></div></div>
+        <img class="cover" id="coverimg" alt="" hidden>
+        <label for="p_body">Post</label>
+        <div class="chips" id="tools"></div>
+        <textarea id="p_body" maxlength="60000" placeholder="Write here. # Heading, **bold**, *italic*, [link](https://…), - list, > quote"></textarea>
+        <div class="bar"><button type="button" class="ghost sm" id="prevbtn">Preview</button><span class="hint">Photos you add go in where your cursor is.</span></div>
+        <div class="preview" id="preview" hidden></div>
+        <label style="display:flex;gap:10px;align-items:center;margin-top:16px"><input type="checkbox" id="p_pub" style="width:auto"> Published (visible on the site)</label>
+        <div class="bar"><button type="submit" id="postsave">Save post</button><button type="button" class="ghost" id="cancel">Back to list</button><button type="button" class="danger" id="delpost" hidden>Delete</button><span class="msg" id="m4"></span></div>
+      </form>
+    </div>
+
+    <!-- GALLERY -->
+    <div id="tab-gallery" hidden>
+      <section class="card"><h2>Add photos</h2>
+        <label class="drop" id="drop"><input type="file" id="files" accept="image/*" multiple hidden><span><b>Drop photos here</b> or click to choose<br><small>They're resized and uploaded. Add a caption and emoji tags after.</small></span></label>
+        <div class="bar"><span class="msg" id="m5"></span></div></section>
+      <section class="card"><h2>Your photos</h2><div class="photos" id="photos"></div></section>
+    </div>
+
+    <div class="bar"><button class="ghost" id="out">Sign out</button></div>
+  </div>
+  <input type="file" id="pick" accept="image/*" hidden>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<script src="/md.js"></script>
+<script>
+/* Studio: edit Right now, write blog posts, manage the photo gallery.
+   Sign in with an emailed code. The database only lets the owner's own emails save. */
+(function () {
+  var db = supabase.createClient('https://orhlwvmxnsztwhfimjru.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs');
+  var $ = function (id) { return document.getElementById(id); };
+  var say = function (el, text, kind) { el.textContent = text; el.className = 'msg' + (kind ? ' ' + kind : ''); };
+  var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var sentTo = '';
+
+  /* ---------- sign in ---------- */
+  $('send').onclick = function () {
+    var email = $('email').value.trim(); if (!email) return; $('send').disabled = true; say($('m1'), 'Sending…');
+    db.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } }).then(function (r) {
+      $('send').disabled = false; if (r.error) return say($('m1'), r.error.message, 'bad');
+      sentTo = email; $('step1').hidden = true; $('step2').hidden = false; say($('m2'), 'Code sent to ' + email + '.'); $('code').focus();
+    });
+  };
+  $('back').onclick = function () { $('step2').hidden = true; $('step1').hidden = false; };
+  $('verify').onclick = function () {
+    var code = $('code').value.replace(/\s/g, ''); if (!code) return; $('verify').disabled = true; say($('m2'), 'Checking…');
+    db.auth.verifyOtp({ email: sentTo, token: code, type: 'email' }).then(function (r) { $('verify').disabled = false; if (r.error) return say($('m2'), r.error.message, 'bad'); start(); });
+  };
+  $('out').onclick = function () { db.auth.signOut().then(function () { location.reload(); }); };
+  function start() {
+    db.rpc('now_can_edit').then(function (r) {
+      if (!r.data) { say($('m2'), 'This account is not allowed to edit.', 'bad'); db.auth.signOut(); return; }
+      $('signin').hidden = true; $('app').hidden = false; loadNow(); loadPosts(); loadPhotos();
+    });
+  }
+
+  /* ---------- tabs ---------- */
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('.tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      ['now', 'blog', 'gallery'].forEach(function (t) { $('tab-' + t).hidden = t !== b.dataset.tab; });
+      history.replaceState(null, '', '#' + b.dataset.tab);
+    };
+  });
+  if (/^#(blog|gallery)$/.test(location.hash)) document.querySelector('[data-tab=' + location.hash.slice(1) + ']').click();
+
+  /* ---------- images: shrink in the browser, then upload ---------- */
+  function shrink(file, max) {
+    if (file.type === 'image/gif') return Promise.resolve({ blob: file, type: 'image/gif', ext: 'gif' });
+    return createImageBitmap(file).then(function (bmp) {
+      var k = Math.min(1, max / Math.max(bmp.width, bmp.height)), c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      return new Promise(function (ok) { c.toBlob(function (b) { ok({ blob: b, type: 'image/webp', ext: 'webp', w: c.width, h: c.height }); }, 'image/webp', .86); });
+    });
+  }
+  function upload(file, folder) {
+    return shrink(file, 2000).then(function (s) {
+      var name = folder + '/' + new Date().toISOString().slice(0, 10) + '-' + Math.random().toString(36).slice(2, 10) + '.' + s.ext;
+      return db.storage.from('portfolio').upload(name, s.blob, { contentType: s.type, upsert: false }).then(function (r) {
+        if (r.error) throw r.error;
+        return { url: db.storage.from('portfolio').getPublicUrl(name).data.publicUrl, path: name, w: s.w, h: s.h };
+      });
+    });
+  }
+  var pickFor = null;
+  $('pick').onchange = function () { var f = $('pick').files[0]; $('pick').value = ''; if (f && pickFor) pickFor(f); };
+  var choose = function (then) { pickFor = then; $('pick').click(); };
+
+  /* ---------- Right now ---------- */
+  var NOWF = ['city', 'status_emoji', 'status_text', 'building_title', 'building_text', 'building_tags', 'reading_title', 'reading_author', 'this_week'];
+  [['🟢', 'Open for a chat'], ['🎧', 'Deep work'], ['💼', 'At Dodo'], ['🐙', 'Building Moluscca'], ['✈️', 'Travelling'], ['🌙', 'Offline']].forEach(function (s) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = s[0] + ' ' + s[1]; b.onclick = function () { $('status_emoji').value = s[0]; $('status_text').value = s[1]; }; $('quick').appendChild(b);
+  });
+  function loadNow() { db.from('now_cards').select('*').eq('id', 1).single().then(function (q) { NOWF.forEach(function (f) { $(f).value = (q.data && q.data[f]) || ''; }); }); }
+  $('tab-now').onsubmit = function (e) {
+    e.preventDefault(); $('nowsave').disabled = true; say($('m3'), 'Saving…');
+    var row = {}; NOWF.forEach(function (f) { row[f] = $(f).value.trim(); }); if (!row.city) row.city = 'Bengaluru';
+    db.from('now_cards').update(row).eq('id', 1).select().then(function (r) {
+      $('nowsave').disabled = false;
+      say($('m3'), r.error || !r.data || !r.data.length ? 'Not saved: ' + (r.error ? r.error.message : 'no permission') : 'Saved. It shows on the site within a minute.', r.error || !r.data || !r.data.length ? 'bad' : 'ok');
+    });
+  };
+
+  /* ---------- Blog ---------- */
+  var editing = null, cover = '';
+  var slugify = function (t) { return t.toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').replace(/-+/g, '-').slice(0, 80); };
+  function loadPosts() {
+    db.from('blog_posts').select('id,slug,title,published,published_at,updated_at').order('updated_at', { ascending: false }).then(function (r) {
+      var rows = r.data || [];
+      $('posts').innerHTML = rows.length ? rows.map(function (p) {
+        return '<div class="item"><span class="pill' + (p.published ? '' : ' draft') + '">' + (p.published ? 'Live' : 'Draft') + '</span><b>' + esc(p.title) + '</b><small>' + new Date(p.updated_at).toLocaleDateString() + '</small>' +
+          (p.published ? '<a href="/blog/' + esc(p.slug) + '" target="_blank" rel="noopener">View</a>' : '') + '<button class="ghost sm" data-id="' + p.id + '">Edit</button></div>';
+      }).join('') : '<p class="hint">No posts yet. Press + New post.</p>';
+      $('posts').querySelectorAll('[data-id]').forEach(function (b) { b.onclick = function () { openPost(b.dataset.id); }; });
+    });
+  }
+  function setCover(url) { cover = url || ''; $('coverimg').hidden = !cover; $('coverimg').src = cover; $('coverx').hidden = !cover; }
+  function openEditor(p) {
+    editing = p ? p.id : null; $('edtitle').textContent = p ? 'Edit post' : 'New post';
+    $('p_title').value = p ? p.title : ''; $('p_slug').value = p ? p.slug : ''; $('p_summary').value = p ? p.summary : ''; $('p_tags').value = p ? p.tags : '';
+    $('p_body').value = p ? p.body : ''; $('p_pub').checked = p ? p.published : false; setCover(p && p.cover_url);
+    $('slugshow').textContent = $('p_slug').value || '…'; $('preview').hidden = true; $('delpost').hidden = !p; say($('m4'), '');
+    $('postlist').hidden = true; $('editor').hidden = false; window.scrollTo(0, 0);
+  }
+  function openPost(id) { db.from('blog_posts').select('*').eq('id', id).single().then(function (r) { if (r.data) openEditor(r.data); }); }
+  $('newpost').onclick = function () { openEditor(null); };
+  $('cancel').onclick = function () { $('editor').hidden = true; $('postlist').hidden = false; loadPosts(); };
+  $('p_title').oninput = function () { if (!editing) { $('p_slug').value = slugify($('p_title').value); $('slugshow').textContent = $('p_slug').value || '…'; } };
+  $('p_slug').oninput = function () { $('p_slug').value = slugify($('p_slug').value); $('slugshow').textContent = $('p_slug').value || '…'; };
+  $('coverbtn').onclick = function () { choose(function (f) { say($('m4'), 'Uploading cover…'); upload(f, 'blog').then(function (u) { setCover(u.url); say($('m4'), 'Cover added.', 'ok'); }, function (e) { say($('m4'), 'Upload failed: ' + e.message, 'bad'); }); }); };
+  $('coverx').onclick = function () { setCover(''); };
+  // writing helpers: wrap the selection, or insert at the cursor
+  var put = function (before, after, fallback) {
+    var t = $('p_body'), s = t.selectionStart, e = t.selectionEnd, mid = t.value.slice(s, e) || fallback || '';
+    t.setRangeText(before + mid + (after || ''), s, e, 'end'); t.focus();
+  };
+  [['H', function () { put('\n## ', '\n', 'Heading'); }], ['B', function () { put('**', '**', 'bold'); }], ['I', function () { put('*', '*', 'italic'); }],
+   ['🔗 Link', function () { var u = prompt('Link address (https://…)'); if (u && /^https?:\/\//.test(u)) put('[', '](' + u + ')', 'link text'); }],
+   ['• List', function () { put('\n- ', '', 'item'); }], ['❝ Quote', function () { put('\n> ', '', 'quote'); }],
+   ['🖼️ Photo', function () { choose(function (f) { say($('m4'), 'Uploading photo…'); upload(f, 'blog').then(function (u) { put('\n![](' + u.url + ')\n', ''); say($('m4'), 'Photo added.', 'ok'); }, function (e) { say($('m4'), 'Upload failed: ' + e.message, 'bad'); }); }); }]
+  ].forEach(function (t) { var b = document.createElement('button'); b.type = 'button'; b.textContent = t[0]; b.onclick = t[1]; $('tools').appendChild(b); });
+  $('prevbtn').onclick = function () { var p = $('preview'); p.hidden = !p.hidden; if (!p.hidden) p.innerHTML = window.renderMarkdown($('p_body').value) || '<p class="hint">Nothing written yet.</p>'; };
+  $('editor').onsubmit = function (e) {
+    e.preventDefault(); $('postsave').disabled = true; say($('m4'), 'Saving…');
+    var row = { title: $('p_title').value.trim(), slug: $('p_slug').value.trim(), summary: $('p_summary').value.trim(), tags: $('p_tags').value.trim(), body: $('p_body').value, cover_url: cover, published: $('p_pub').checked };
+    var q = editing ? db.from('blog_posts').update(row).eq('id', editing) : db.from('blog_posts').insert(row);
+    q.select().then(function (r) {
+      $('postsave').disabled = false;
+      if (r.error) return say($('m4'), r.error.code === '23505' ? 'That web address is already used by another post.' : 'Not saved: ' + r.error.message, 'bad');
+      editing = r.data[0].id; $('delpost').hidden = false; $('edtitle').textContent = 'Edit post';
+      say($('m4'), row.published ? 'Saved and live at /blog/' + row.slug : 'Saved as a draft.', 'ok');
+    });
+  };
+  $('delpost').onclick = function () {
+    if (!editing || !confirm('Delete this post for good?')) return;
+    db.from('blog_posts').delete().eq('id', editing).then(function (r) { if (r.error) return say($('m4'), r.error.message, 'bad'); $('cancel').click(); });
+  };
+
+  /* ---------- Gallery ---------- */
+  function loadPhotos() {
+    db.from('gallery_photos').select('*').order('created_at', { ascending: false }).then(function (r) {
+      var rows = r.data || [];
+      $('photos').innerHTML = rows.length ? rows.map(function (p) {
+        return '<div class="ph" data-id="' + p.id + '"><img src="' + esc(p.url) + '" alt="" loading="lazy"><div>' +
+          '<input data-f="caption" maxlength="200" placeholder="Caption" value="' + esc(p.caption) + '">' +
+          '<input data-f="tags" maxlength="80" placeholder="Emoji tags: 🏔️ trek, ☕ cafe" value="' + esc(p.tags) + '">' +
+          '<input data-f="taken_on" type="date" value="' + esc(p.taken_on || '') + '">' +
+          '<div class="bar"><button class="sm" data-a="save">Save</button><button class="danger sm" data-a="del">Delete</button><span class="msg"></span></div></div></div>';
+      }).join('') : '<p class="hint">No photos yet.</p>';
+      $('photos').querySelectorAll('.ph').forEach(function (card) {
+        var id = card.dataset.id, msg = card.querySelector('.msg');
+        card.querySelector('[data-a=save]').onclick = function () {
+          var row = {}; card.querySelectorAll('[data-f]').forEach(function (i) { row[i.dataset.f] = i.value.trim() || (i.dataset.f === 'taken_on' ? null : ''); });
+          db.from('gallery_photos').update(row).eq('id', id).then(function (r) { say(msg, r.error ? r.error.message : 'Saved', r.error ? 'bad' : 'ok'); });
+        };
+        card.querySelector('[data-a=del]').onclick = function () {
+          if (!confirm('Delete this photo for good?')) return;
+          var url = card.querySelector('img').src, path = url.split('/object/public/portfolio/')[1];
+          db.from('gallery_photos').delete().eq('id', id).then(function (r) {
+            if (r.error) return say(msg, r.error.message, 'bad');
+            if (path) db.storage.from('portfolio').remove([decodeURIComponent(path)]);
+            card.remove();
+          });
+        };
+      });
+    });
+  }
+  function addPhotos(files) {
+    files = [].slice.call(files).filter(function (f) { return /^image\//.test(f.type); }); if (!files.length) return;
+    var done = 0; say($('m5'), 'Uploading 0 of ' + files.length + '…');
+    files.reduce(function (chain, f) {
+      return chain.then(function () {
+        return upload(f, 'gallery').then(function (u) { return db.from('gallery_photos').insert({ url: u.url, width: u.w || null, height: u.h || null }); })
+          .then(function (r) { if (r && r.error) throw r.error; done++; say($('m5'), 'Uploading ' + done + ' of ' + files.length + '…'); });
+      });
+    }, Promise.resolve()).then(function () { say($('m5'), 'Uploaded ' + done + '. Add captions and tags below, then Save.', 'ok'); loadPhotos(); },
+      function (e) { say($('m5'), 'Stopped: ' + e.message, 'bad'); loadPhotos(); });
+  }
+  $('files').onchange = function () { addPhotos($('files').files); $('files').value = ''; };
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { addPhotos(e.dataTransfer.files); });
+
+  db.auth.getSession().then(function (r) { if (r.data && r.data.session) start(); });
+})();
+</script>
+</body></html>

@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /now-edit
+Disallow: /studio
 
 Sitemap: https://www.prasanna.lol/sitemap.xml
 

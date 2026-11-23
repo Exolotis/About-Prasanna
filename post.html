@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Writing · Prasanna Bhatkar</title>
+<meta name="description" content="Writing by Prasanna Bhatkar.">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--f:'Albert Sans',-apple-system,BlinkMacSystemFont,sans-serif;--mute:#86868b;--line:rgba(255,255,255,.1)}
+*{box-sizing:border-box}
+body{margin:0;background:#000;color:#f5f5f7;font:18px/1.75 var(--f)}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;max-width:760px;margin:0 auto;padding:18px 20px;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.top a{color:#f5f5f7;text-decoration:none;font:600 15px var(--f)}.top a.home{display:flex;align-items:center;gap:10px}.top img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+article{max-width:720px;margin:0 auto;padding:30px 20px 100px}
+.meta{color:var(--mute);font:500 14px var(--f)}
+h1{font:600 clamp(34px,6vw,52px)/1.08 var(--f);letter-spacing:-.035em;margin:10px 0 14px}
+.lead{color:#c7c7cc;font-size:20px;margin:0 0 24px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:26px}.tags i{font-style:normal;font:600 12.5px var(--f);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--line)}
+.cover{width:100%;border-radius:22px;margin:0 0 30px;box-shadow:0 30px 80px -30px rgba(0,0,0,.8)}
+.body h2,.body h3,.body h4{font-family:var(--f);letter-spacing:-.02em;line-height:1.2;margin:1.8em 0 .5em}
+.body h2{font-size:30px}.body h3{font-size:24px}.body h4{font-size:20px}
+.body p{margin:0 0 1.1em;color:#e5e5ea}
+.body a{color:#4da3ff}
+.body img{display:block;max-width:100%;border-radius:16px;margin:1.6em auto}
+.body blockquote{margin:1.4em 0;padding:4px 0 4px 20px;border-left:3px solid #0a84ff;color:#c7c7cc;font-style:italic}
+.body code{font:15px ui-monospace,Menlo,Consolas,monospace;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
+.body pre{overflow:auto;padding:16px;border-radius:14px;background:#0b0b0d;box-shadow:inset 0 0 0 1px var(--line)}.body pre code{background:none;padding:0}
+.body hr{border:0;height:1px;background:var(--line);margin:2.4em 0}
+.body ul,.body ol{padding-left:1.3em;margin:0 0 1.1em}
+.end{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:500 15px var(--f)}.end a{color:#f5f5f7}
+.missing{text-align:center;padding:120px 20px;color:var(--mute)}
+</style>
+</head>
+<body>
+<nav class="top"><a class="home" href="/"><img src="/prasanna.jpg" alt="">Prasanna</a><a href="/#writing">All writing</a></nav>
+<article id="post"><p class="meta">Loading…</p></article>
+<script src="/md.js"></script>
+<script>
+/* Show one blog post. The address is /blog/<slug>. */
+(function () {
+  var SB = 'https://orhlwvmxnsztwhfimjru.supabase.co/rest/v1', KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGx3dm14bnN6dHdoZmltanJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjMwNDAsImV4cCI6MjEwMDA5OTA0MH0.Q8DRd40-OJcxuWRMpToCF9qF2XbsM1QGU_rdrr4_mQs';
+  var PUB = 'https://orhlwvmxnsztwhfimjru.supabase.co/storage/v1/object/public/portfolio/';
+  var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var box = document.getElementById('post');
+  var slug = (location.pathname.match(/\/blog\/([a-z0-9-]+)/) || [])[1] || new URLSearchParams(location.search).get('slug') || '';
+  var missing = function () { box.innerHTML = '<div class="missing"><h1>Post not found</h1><p>It may have moved. <a href="/#writing" style="color:#4da3ff">See all writing</a></p></div>'; };
+  if (!/^[a-z0-9-]{3,80}$/.test(slug)) return missing();
+  fetch(SB + '/blog_posts?select=slug,title,summary,body,cover_url,tags,published_at&published=eq.true&slug=eq.' + slug, { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (rows) {
+      var p = rows[0]; if (!p) return missing();
+      document.title = p.title + ' · Prasanna Bhatkar';
+      var d = document.querySelector('meta[name=description]'); if (d && p.summary) d.setAttribute('content', p.summary);
+      var words = String(p.body).split(/\s+/).filter(Boolean).length, mins = Math.max(1, Math.round(words / 220));
+      var tags = String(p.tags || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+      box.innerHTML = '<p class="meta">' + esc(new Date(p.published_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })) + ' · ' + mins + ' min read</p>' +
+        '<h1>' + esc(p.title) + '</h1>' + (p.summary ? '<p class="lead">' + esc(p.summary) + '</p>' : '') +
+        (tags.length ? '<div class="tags">' + tags.map(function (t) { return '<i>' + esc(t) + '</i>'; }).join('') + '</div>' : '') +
+        (String(p.cover_url).indexOf(PUB) === 0 ? '<img class="cover" src="' + esc(p.cover_url) + '" alt="">' : '') +
+        '<div class="body">' + window.renderMarkdown(p.body) + '</div>' +
+        '<div class="end"><a href="/#writing">← All writing</a><a href="/">prasanna.lol</a></div>';
+    }, missing);
+})();
+</script>
+</body></html>
