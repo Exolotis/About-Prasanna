@@ -511,6 +511,29 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media(max-width:900px){.nwrow{grid-template-columns:1fr!important}.nwread,.nwweek,.nwbuild{grid-column:auto!important;grid-row:auto}}
 
 .nwsgbtn{margin-left:auto;height:28px;padding:0 11px;border:0;border-radius:999px;background:rgba(30,215,96,.15);color:#1ed760;font:600 12px var(--f);cursor:pointer;position:relative;z-index:1}.nwsgbtn:hover{background:rgba(30,215,96,.25)}.nwsgbtn[hidden]{display:none}
+
+/* Moluscca GR touch pad (phones and tablets only) */
+.grpad{display:none;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;padding:12px 14px;border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);user-select:none;-webkit-user-select:none;touch-action:none}
+.grdpad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);gap:4px;grid-template-areas:". u ." "l c r" ". d ."}
+.grdpad button{border:0;border-radius:12px;background:rgba(255,255,255,.1);color:#f5f5f7;font-size:15px;touch-action:none;-webkit-tap-highlight-color:transparent}
+.grdpad button.down,.gra.down{background:#7C9CFF;color:#000}
+.grdpad span{grid-area:c;border-radius:50%;background:rgba(255,255,255,.04)}
+.grdpad [data-k=up]{grid-area:u}.grdpad [data-k=left]{grid-area:l}.grdpad [data-k=right]{grid-area:r}.grdpad [data-k=down]{grid-area:d}
+.grab{display:flex;flex-direction:column;align-items:center;gap:6px}.grab small{color:var(--mute);font:600 11px var(--f)}
+.gra{width:72px;height:72px;border:0;border-radius:50%;background:#f5f5f7;color:#000;font:700 22px var(--f);box-shadow:0 8px 24px rgba(0,0,0,.45);touch-action:none;-webkit-tap-highlight-color:transparent}
+.gra:active{transform:scale(.95)}
+@media(hover:none) and (pointer:coarse){.grpad{display:flex}.grkeys{display:none}.grov{padding:10px}.grwin{padding:10px}}
+
+/* phone polish for Right now */
+@media(max-width:900px){
+  .nwbuild{grid-template-columns:1fr!important;gap:16px}
+  .nwcard{border-radius:24px;padding:20px}
+  .nwgrid,.nwrow{gap:12px}
+  .nwphead .nwhead em{display:none}
+  .nwsgbtn{height:26px;padding:0 9px;font-size:11.5px}
+  .nwtime{font-size:52px}
+  .nwptile{width:112px}.nwptile img,.nwptile .nwart0{width:112px;height:112px}
+}
 </style>
 </head>
 <body>

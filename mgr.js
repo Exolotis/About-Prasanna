@@ -106,9 +106,7 @@
         '<div class="grdex">' + DEX.map(d => caught.includes(d.id)
           ? '<div class="grd on"><i style="color:' + d.colour + '">' + d.mark + '</i><b>' + d.name + '</b></div>'
           : '<div class="grd"><i>?</i><b>???</b></div>').join('') + '</div>' +
-        (keyboardless
-          ? '<div class="sdf"><span class="bgmsg">This one needs a keyboard. Play it on a computer.</span></div>'
-          : '<div class="sdf"><span class="bgmsg">' + (caught.length === DEX.length ? 'Molusdex complete. Legend.' : 'Arrow keys or WASD to walk. Space to talk. M to mute.') + '</span><button type="button" class="sdnew" data-a="play">' + (caught.length ? 'Continue' : 'Play') + '</button></div>');
+        '<div class="sdf"><span class="bgmsg">' + (caught.length === DEX.length ? 'Molusdex complete. Legend.' : keyboardless ? 'Use the pad to walk, A to talk and catch.' : 'Arrow keys or WASD to walk. Space to talk. M to mute.') + '</span><button type="button" class="sdnew" data-a="play">' + (caught.length ? 'Continue' : 'Play') + '</button></div>';
       const play = panel.querySelector('[data-a=play]'); if (play) play.onclick = open;
     };
 
@@ -117,7 +115,10 @@
     ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Moluscca Global Revolution');
     ov.innerHTML =
       '<div class="grwin"><div class="grtop"><b>Moluscca Global Revolution</b><span class="grcount"></span><button type="button" class="grmute" aria-label="Mute sound"></button><button type="button" class="grx" aria-label="Close">×</button></div>' +
-      '<div class="grstage"><canvas width="' + VIEW_W * TILE + '" height="' + VIEW_H * TILE + '"></canvas><div class="grbox" hidden></div></div><p class="grkeys">Arrow keys or WASD to walk · Space to talk and catch · M to mute · Esc to close</p></div>';
+      '<div class="grstage"><canvas width="' + VIEW_W * TILE + '" height="' + VIEW_H * TILE + '"></canvas><div class="grbox" hidden></div></div><p class="grkeys">Arrow keys or WASD to walk · Space to talk and catch · M to mute · Esc to close</p>' +
+      // touch screens only: a small game-boy style pad
+      '<div class="grpad" aria-label="Controls"><div class="grdpad"><button type="button" data-k="up" aria-label="Up">▲</button><button type="button" data-k="left" aria-label="Left">◀</button><span></span><button type="button" data-k="right" aria-label="Right">▶</button><button type="button" data-k="down" aria-label="Down">▼</button></div>' +
+      '<div class="grab"><button type="button" data-k="act" class="gra" aria-label="Talk or catch">A</button><small>talk · catch</small></div></div></div>';
     // on the normal page it sits on top of everything; in the games pop-up only the games section is shown, so it goes there
     (document.documentElement.getAttribute('data-embed') && panel.closest('section') || document.body).appendChild(ov);
     const cv = ov.querySelector('canvas'), ctx = cv.getContext('2d'), box = ov.querySelector('.grbox'), count = ov.querySelector('.grcount');
@@ -305,6 +306,14 @@
       if (e.type === 'keydown') held.add(k); else held.delete(k);
     };
     document.addEventListener('keydown', onKey); document.addEventListener('keyup', onKey);
+    // the touch pad: hold a direction to keep walking, A talks or catches
+    ov.querySelectorAll('.grpad [data-k]').forEach(b => {
+      const k = b.dataset.k;
+      if (k === 'act') { b.addEventListener('pointerdown', e => { e.preventDefault(); act(); }); return; }
+      const on = e => { e.preventDefault(); held.add(k); b.classList.add('down'); }, off = () => { held.delete(k); b.classList.remove('down'); };
+      b.addEventListener('pointerdown', on); ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, off));
+      b.addEventListener('contextmenu', e => e.preventDefault());
+    });
     const muteBtn = ov.querySelector('.grmute');
     const showMute = () => {
       muteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/>' +

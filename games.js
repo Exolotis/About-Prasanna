@@ -29,11 +29,12 @@
   // [id, name, small icon, short tag shown on the game card]
   const TABS = [['sudoku', 'Sudoku', '9', 'Timed · 3 levels'], ['wordle', 'Wordle', 'W', 'Daily word'], ['mgr', 'Moluscca GR', '◕', 'Keyboard adventure'], ['chess', 'Chess', '♞\uFE0E', 'vs Bot · 2 players'], ['ttt', 'Tic-tac-toe', '✕', 'vs Bot · 2 players'],
     ['memory', 'Memory', '◐', '8 pairs'], ['quick', 'Quick maths', '±', '60 seconds'], ['bigger', 'Bigger or smaller', '⇄', '60 seconds'], ['sequence', "What's next", '…', '60 seconds'], ['snake', 'Snake', '▚', 'Secret · unlocked']];
-  const BOARD = { chess: 1, ttt: 1, snake: 1, mgr: 1 }; // board games: no leaderboard
+  const BOARD = { chess: 1, ttt: 1, snake: 1, mgr: 1 };   // games that live in board-games.js / mgr.js
+  const NO_BOARD = { ttt: 1, snake: 1, mgr: 1 };          // of those, the ones without a leaderboard
   const secretOpen = () => { try { return !!localStorage.getItem('pixel-secret'); } catch (e) { return false; } };
-  const NAMES = { wordle: 'Wordle', memory: 'Memory' }, ASC = g => /^(sudoku|wordle|memory)/.test(g);
-  const show = (g, s) => g.startsWith('sudoku') ? fmt(s) : g === 'wordle' ? Math.floor(s / 1000) + (Math.floor(s / 1000) > 1 ? ' tries' : ' try') + ' · ' + fmt(s % 1000) : g === 'memory' ? Math.floor(s / 1000) + ' moves · ' + fmt(s % 1000) : s;
-  const label = g => g.startsWith('sudoku') ? 'Sudoku · ' + g.split('-')[1][0].toUpperCase() + g.split('-')[1].slice(1) : (NAMES[g] || G[g].name);
+  const NAMES = { wordle: 'Wordle', memory: 'Memory' }, ASC = g => /^(sudoku|wordle|memory|chess)/.test(g);
+  const show = (g, s) => g.startsWith('chess') ? s + (s === 1 ? ' move' : ' moves') : g.startsWith('sudoku') ? fmt(s) : g === 'wordle' ? Math.floor(s / 1000) + (Math.floor(s / 1000) > 1 ? ' tries' : ' try') + ' · ' + fmt(s % 1000) : g === 'memory' ? Math.floor(s / 1000) + ' moves · ' + fmt(s % 1000) : s;
+  const label = g => g.startsWith('chess') ? 'Chess · ' + g.split('-')[1][0].toUpperCase() + g.split('-')[1].slice(1) : g.startsWith('sudoku') ? 'Sudoku · ' + g.split('-')[1][0].toUpperCase() + g.split('-')[1].slice(1) : (NAMES[g] || G[g].name);
 
   /* ---------- markup ---------- */
   const bar = document.createElement('div'); bar.className = 'gbar';
@@ -46,7 +47,7 @@
     bigger: ['Bigger or smaller', 'Two sums appear. Pick the one with the bigger answer.', 'Tap it, or press ← for left and → for right.', 'One point per right pick in 60 seconds.'],
     sequence: ["What's next", 'Four numbers follow a pattern: adding, subtracting, doubling or squares.', 'Type the number that comes next.', 'One point per right answer in 60 seconds.'],
     wordle: ['Wordle', "Guess today's five-letter word in six tries. Everyone gets the same word.", 'Green: right letter, right spot. Yellow: in the word, wrong spot. Grey: not in the word.', 'After your daily go, practise with random words. Fewest tries, then fastest time, wins.'],
-    chess: ['Chess', 'Checkmate the other king. All the normal rules, including castling and en passant.', 'Tap a piece to see where it can go, then tap a square. Pawns that reach the end become queens.', 'Play the bot on Easy, Medium or Hard, or pass the device for 2 players. Undo takes back your last move.'],
+    chess: ['Chess', 'Checkmate the other king. Beat the bot to get on that level\'s leaderboard: fewest moves wins.', 'Tap a piece to see where it can go, then tap a square. Pawns that reach the end become queens.', 'Play the bot on Easy, Medium or Hard, or pass the device for 2 players. Undo takes back your last move.'],
     ttt: ['Tic-tac-toe', 'Get three in a row: across, down or diagonal.', 'Tap a square. You are X against the bot. Who starts swaps every round.', 'Easy makes mistakes. Unbeatable never loses, so a draw is a good result.'],
     mgr: ['Moluscca Global Revolution', 'Play as an octopus and explore a small town.', 'Walk into tall grass to meet wild Moluscca things. Stop the moving marker in the green zone to catch them.', 'Visit the API Lab, Templates Store and Skill Shop too. Catch all six to complete the Molusdex.'],
     memory: ['Memory', 'Flip two cards at a time to find the 8 matching pairs.', 'Pairs that match stay face up. The rest flip back.', 'Fewest moves, then fastest time, wins.'] };
@@ -70,7 +71,8 @@
 
   /* ---------- leaderboard ---------- */
   let cur = 'sudoku';
-  const boardKey = () => { if (cur !== 'sudoku') return cur; const lv = document.querySelector('#sdlv .on'); return 'sudoku-' + ({ 38: 'easy', 46: 'medium', 53: 'hard' }[lv ? lv.dataset.l : 38] || 'easy'); };
+  const CHESS_LEVEL = { 1: 'easy', 2: 'medium', 3: 'hard' };
+  const boardKey = () => { if (cur === 'chess') { const on = document.querySelector('.cs [data-k=level] .on'); return 'chess-' + (CHESS_LEVEL[on ? on.dataset.v : 2] || 'medium'); } if (cur !== 'sudoku') return cur; const lv = document.querySelector('#sdlv .on'); return 'sudoku-' + ({ 38: 'easy', 46: 'medium', 53: 'hard' }[lv ? lv.dataset.l : 38] || 'easy'); };
   document.getElementById('sdn').addEventListener('click', () => { const o = sdk.querySelector('.gjoin'); if (o) o.remove(); });
   document.querySelectorAll('#sdlv button').forEach(b => b.addEventListener('click', () => { const o = sdk.querySelector('.gjoin'); if (o) o.remove(); }));
   const showBoard = async g => { g = g || boardKey(); const asc = ASC(g);
@@ -189,13 +191,23 @@
         E.innerHTML = '<p class="wdmsg">All pairs in ' + M.moves + ' moves, ' + fmt(secs) + '.</p><button type="button" class="sdnew">Play again</button>'; E.querySelector('button').onclick = mStart; log('memory', sc); offer(E, 'memory', sc, ''); } }
     else { M.lock = true; setTimeout(() => { a.classList.remove('up'); c.classList.remove('up'); M.lock = false; }, 750); } });
 
+  /* ---------- chess wins against the bot ---------- */
+  window.addEventListener('chess-win', e => {
+    const d = e.detail || {}, game = 'chess-' + (CHESS_LEVEL[d.level] || 'medium'), moves = Math.max(1, Math.min(400, d.moves | 0));
+    const old = d.host && d.host.querySelector('.gjoin'); if (old) old.remove();
+    log(game, moves); if (d.host) offer(d.host, game, moves, 'Checkmate in ' + moves + ' moves on ' + label(game).split(' · ')[1] + '.');
+    if (!lb.hidden) showBoard();
+  });
+  // changing the chess level refreshes the open leaderboard
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.cs [data-k=level] button') && !lb.hidden) setTimeout(showBoard, 0); });
+
   /* ---------- tabs ---------- */
   bar.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     if (st) { clearInterval(st.tm); st = null; }
     bar.querySelectorAll('[data-g]').forEach(x => x.setAttribute('aria-selected', x === b)); cur = b.dataset.g; b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
     sdk.hidden = cur !== 'sudoku'; mg.hidden = !G[cur]; cs.hidden = cur !== 'chess'; tt.hidden = cur !== 'ttt'; sn.hidden = cur !== 'snake'; gr.hidden = cur !== 'mgr';
     if (BOARD[cur] && !built[cur] && window.boardGames) { window.boardGames[cur](PANELS[cur]); built[cur] = true; }
-    lbb.hidden = !!BOARD[cur]; if (BOARD[cur]) { lb.hidden = true; lbb.classList.remove('on'); lbb.setAttribute('aria-expanded', false); }
+    lbb.hidden = !!NO_BOARD[cur]; if (NO_BOARD[cur]) { lb.hidden = true; lbb.classList.remove('on'); lbb.setAttribute('aria-expanded', false); }
     wd.hidden = cur !== 'wordle'; mm.hidden = cur !== 'memory'; if (G[cur]) intro(); if (cur === 'wordle' && !W.ans) wStart(false); if (cur === 'memory' && !M.cards) mStart(); if (!lb.hidden) showBoard(); if (!gh.hidden) guide(); });
   document.querySelectorAll('#sdlv button').forEach(b => b.addEventListener('click', () => { if (!lb.hidden) setTimeout(showBoard, 0); }));
 })();

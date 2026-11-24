@@ -190,6 +190,8 @@
       if (!moves.length) {
         over = true;
         msg.textContent = !check ? "Stalemate. It's a draw." : mode === 'bot' ? (S.turn === 'b' ? 'Checkmate. You win!' : 'Checkmate. The bot wins.') : 'Checkmate. ' + (S.turn === 'w' ? 'Black' : 'White') + ' wins!';
+        // beat the bot: report the win so it can go on the leaderboard (fewest of your moves wins)
+        if (check && mode === 'bot' && S.turn === 'b') window.dispatchEvent(new CustomEvent('chess-win', { detail: { level: level, moves: Math.ceil(history.length / 2), host: panel } }));
       } else if (S.half >= 100) { over = true; msg.textContent = 'Fifty moves with no capture. Draw.'; }
       else if (tooFewPieces(S.b)) { over = true; msg.textContent = 'Not enough pieces to win. Draw.'; }
       else msg.textContent = (mode === 'bot' ? (S.turn === 'w' ? 'Your move' : 'Bot is thinking…') : name + ' to move') + (check ? ' · Check!' : '');
