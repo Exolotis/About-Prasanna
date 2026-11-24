@@ -28,3 +28,17 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') show(false); });
   addEventListener('scroll', () => { if (!sheet.hidden) show(false); }, { passive: true });
 })();
+
+/* Secret: scrolling all the way to the bottom of the page unlocks the hidden Snake game (no visible scroller). */
+(() => {
+  const has = () => { try { return !!localStorage.getItem('pixel-secret'); } catch (e) { return true; } };
+  if (has() || document.documentElement.getAttribute('data-embed')) return;
+  const check = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    if (max > 0 && scrollY / max > .985) {
+      try { localStorage.setItem('pixel-secret', '1'); } catch (e) {}
+      window.dispatchEvent(new Event('pixel-secret')); removeEventListener('scroll', check);
+    }
+  };
+  addEventListener('scroll', check, { passive: true });
+})();
