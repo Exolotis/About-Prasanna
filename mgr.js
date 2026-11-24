@@ -47,7 +47,7 @@
       moves: [{ n: 'Pulse', pow: 40, acc: 1, kind: 'data' }, { n: 'Rebalance', pow: 0, acc: 1, kind: 'heal' }, { n: 'Arbitrage', pow: 36, acc: 1, kind: 'drain' }, { n: 'Shock', pow: 62, acc: .85, kind: 'data' }] }
   };
   // battle sprites: Kenney's Tiny Dungeon pack (CC0, kenney.nl), 16 x 16, 12 per row, drawn big and crisp
-  const SPRITE = { volty: 120, hedge: 110, delta: 84, api: 108, templates: 121, quant: 109, monte: 122, tail: 123, climate: 124 };
+  const SPRITE = { volty: 120, hedge: 96, delta: 84, api: 108, templates: 121, quant: 109, monte: 122, tail: 123, climate: 124 };
   const sprite = (key, scale, flip) => { const n = SPRITE[key] || 108; return '<span class="grspr' + (flip ? ' flip' : '') + '" style="--s:' + scale + ';--x:' + (n % 12) + ';--y:' + Math.floor(n / 12) + '"></span>'; };
   const WILD_TYPE = { api: 'data', templates: 'data', quant: 'shield', monte: 'market', tail: 'market', climate: 'shield' };
   const BEATS = { market: 'data', data: 'shield', shield: 'market' };
@@ -300,17 +300,38 @@
     const battleCatch = () => {
       if (!fight || fight.busy) return;
       const f = fight.foe, chance = Math.min(.95, Math.max(.08, (1 - f.hp / f.max) * .95 + .12 - f.d.hard * .25));
-      fight.busy = true; drawBattle('You throw a net…');
+      fight.busy = true; drawBattle('You throw a capture orb…');
+      const got = Math.random() < chance;
+      // the throw: an orb arcs from your partner to the wild one, it gets pulled in, the orb wobbles 3 times
+      const scene = box.querySelector('.grscene'), foeEl = scene && scene.querySelector('.grmon.foe .grspr'), meEl = scene && scene.querySelector('.grmon.me .grspr');
+      const log = t => { const p = box.querySelector('.grlog'); if (p) p.innerHTML = t; };
+      let wait = 700;
+      if (scene && foeEl && meEl && Element.prototype.animate) {
+        const S = scene.getBoundingClientRect(), A = meEl.getBoundingClientRect(), B = foeEl.getBoundingClientRect();
+        const x0 = A.left - S.left + A.width / 2 - 13, y0 = A.top - S.top + A.height / 3, x1 = B.left - S.left + B.width / 2 - 13, y1 = B.top - S.top + B.height - 30;
+        const orb = document.createElement('span'); orb.className = 'grorb'; scene.appendChild(orb);
+        orb.animate([{ transform: 'translate(' + x0 + 'px,' + y0 + 'px) scale(.5) rotate(0)' }, { transform: 'translate(' + (x0 + x1) / 2 + 'px,' + Math.min(y0, y1) * .15 + 'px) scale(1) rotate(360deg)' }, { transform: 'translate(' + x1 + 'px,' + y1 + 'px) scale(1) rotate(720deg)' }], { duration: 650, easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'forwards' }).onfinish = e => { orb.style.translate = x1 + 'px ' + y1 + 'px'; e.target.cancel(); };   // stay where it landed (wobbles spin in place)
+        sound.blip();
+        setTimeout(() => { foeEl.animate([{ opacity: 1, transform: 'scale(1)', filter: 'brightness(1)' }, { opacity: 0, transform: 'scale(.1) translateY(30px)', filter: 'brightness(4)' }], { duration: 300, fill: 'forwards' }); sound.door(); }, 650);
+        const wobble = n => setTimeout(() => { log('…' + '•'.repeat(n)); sound.step(n % 2); orb.animate([{ rotate: '0deg' }, { rotate: '-22deg' }, { rotate: '18deg' }, { rotate: '0deg' }], { duration: 380, easing: 'ease-in-out' }); }, 1000 + n * 520);
+        const tries = got ? 3 : 1 + Math.floor(Math.random() * 3);
+        for (let n = 0; n < tries; n++) wobble(n);
+        wait = 1000 + tries * 520 + 350;
+        setTimeout(() => {
+          if (got) { orb.classList.add('shut'); }
+          else { orb.classList.add('burst'); foeEl.animate([{ opacity: 0, transform: 'scale(.1)' }, { opacity: 1, transform: 'scale(1.15)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 320, fill: 'forwards' }); }
+        }, wait - 300);
+      }
       setTimeout(() => {
         if (!fight) return;
-        if (Math.random() < chance) {
+        if (got) {
           const d = f.d, isNew = !caught.includes(d.id); save(d.id); const all = caught.length === DEX.length;
           if (all && isNew) sound.complete(); else sound.caught();
           endBattle();
           talk('<b>Gotcha! ' + esc(d.name) + ' was caught.</b>' + (isNew ? ' Added to your Molusdex.' : ' You already had one.') + (all ? '<br>That is all six. Molusdex complete!' : ''),
             d.url ? [{ label: 'Nice', go: done }, { label: 'Visit ' + d.name, url: d.url }] : [{ label: 'Nice', go: done }]);
         } else { sound.escaped(); foeTurn(esc(f.d.name) + ' broke free!'); }
-      }, 700);
+      }, wait + 250);
     };
     const battleRun = () => { if (!fight || fight.busy) return; endBattle(); };
 

@@ -651,6 +651,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 /* phones: during a fight the battle takes the whole window (map and pad step aside) */
 @media(max-width:720px){.grstage:has(.grbattle) canvas{display:none}.grwin:has(.grbattle) .grpad{display:none!important}.grbox.grbattle{margin-top:0}.grbox.grbattle .grscene{min-height:300px}.grbox.grbattle .grmenu button{min-height:52px;font-size:15px}}
+
+/* capture orb (our own design) */
+.grorb{position:absolute;left:0;top:0;z-index:5;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 34% 28%,#fff 0 12%,#c9d6ff 13% 30%,#7C9CFF 31% 62%,#3b52b0 63%);box-shadow:0 0 18px 2px rgba(124,156,255,.75),inset 0 0 0 2px rgba(255,255,255,.55);pointer-events:none}
+.grorb::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(124,156,255,.45)}
+.grorb.shut{box-shadow:0 0 30px 8px rgba(255,214,10,.85),inset 0 0 0 2px #fff}.grorb.shut::after{border-color:rgba(255,214,10,.8);animation:grsparkle .6s ease-out 2}
+@keyframes grsparkle{to{inset:-22px;opacity:0}}
+.grorb.burst{animation:grburst .35s ease-out forwards}
+@keyframes grburst{to{opacity:0;filter:brightness(3);scale:2.2}}
 </style>
 </head>
 <body>
