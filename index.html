@@ -637,6 +637,20 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .grmenu button:disabled{opacity:.5;cursor:default}
 .grback{position:absolute;right:14px;top:10px;z-index:3;height:30px;padding:0 12px;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font:600 12px var(--f);cursor:pointer}
 @media(max-width:720px){.grbox.grbattle{position:static}.grscene{min-height:190px}.grcmd{grid-template-columns:1fr}.grinfo{min-width:150px;padding:6px 9px}.grscene .grmon i{width:56px;height:56px;font-size:26px}.grscene .grmon.me i{width:68px;height:68px;font-size:30px}.grscene .grplat{width:110px}.grscene .grmon.me .grplat{width:140px}}
+
+/* battle sprites (Kenney Tiny Dungeon, CC0): crisp pixel art, no blur */
+.grspr{position:relative;z-index:1;display:block;width:calc(16px * var(--s));height:calc(16px * var(--s));background:url(/mgr-monsters.png) no-repeat;background-size:calc(192px * var(--s)) calc(176px * var(--s));background-position:calc(-16px * var(--s) * var(--x)) calc(-16px * var(--s) * var(--y));image-rendering:pixelated;filter:drop-shadow(0 6px 0 rgba(0,0,0,.18));animation:grbob 1.4s ease-in-out infinite}
+.grspr.flip{scale:-1 1}
+.grmon.me .grspr{animation-delay:-.7s}
+.grscene .grmon{display:grid;justify-items:center}
+.grscene .grplat{margin-top:-18px}
+.grmon.hit .grspr{animation:grhit .45s ease-out 1}
+.grmon.out .grspr{opacity:.2;transition:opacity .5s}
+.grpick .grspr{animation:none;filter:none;flex:none}
+@media(max-width:720px){.grscene .grmon.foe .grspr{--s:4!important}.grscene .grmon.me .grspr{--s:5!important}}
+
+/* phones: during a fight the battle takes the whole window (map and pad step aside) */
+@media(max-width:720px){.grstage:has(.grbattle) canvas{display:none}.grwin:has(.grbattle) .grpad{display:none!important}.grbox.grbattle{margin-top:0}.grbox.grbattle .grscene{min-height:300px}.grbox.grbattle .grmenu button{min-height:52px;font-size:15px}}
 </style>
 </head>
 <body>

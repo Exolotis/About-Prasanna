@@ -46,6 +46,9 @@
     delta: { name: 'Delta', mark: 'Δ', colour: '#7C9CFF', type: 'data', blurb: 'Balanced. Steals a little health with every hit.', base: { hp: 50, atk: 12, def: 11 },
       moves: [{ n: 'Pulse', pow: 40, acc: 1, kind: 'data' }, { n: 'Rebalance', pow: 0, acc: 1, kind: 'heal' }, { n: 'Arbitrage', pow: 36, acc: 1, kind: 'drain' }, { n: 'Shock', pow: 62, acc: .85, kind: 'data' }] }
   };
+  // battle sprites: Kenney's Tiny Dungeon pack (CC0, kenney.nl), 16 x 16, 12 per row, drawn big and crisp
+  const SPRITE = { volty: 120, hedge: 110, delta: 84, api: 108, templates: 121, quant: 109, monte: 122, tail: 123, climate: 124 };
+  const sprite = (key, scale, flip) => { const n = SPRITE[key] || 108; return '<span class="grspr' + (flip ? ' flip' : '') + '" style="--s:' + scale + ';--x:' + (n % 12) + ';--y:' + Math.floor(n / 12) + '"></span>'; };
   const WILD_TYPE = { api: 'data', templates: 'data', quant: 'shield', monte: 'market', tail: 'market', climate: 'shield' };
   const BEATS = { market: 'data', data: 'shield', shield: 'market' };
   const typeBoost = (moveType, targetType) => BEATS[moveType] === targetType ? 1.5 : BEATS[targetType] === moveType ? .67 : 1;
@@ -202,7 +205,7 @@
           const st = statsAt(STARTERS[k].base, 5); team = { kind: k, lvl: 5, xp: 0, hp: st.max }; saveTeam(); sound.caught();
           talk('<b>' + STARTERS[k].name + ' is your partner!</b> Walk into the tall grass to battle wild things. Weaken one, then press Catch.', [{ label: "Let's go", go: done }]);
         };
-        return talk('<b>Home.</b> Choose your partner:<br>' + Object.keys(STARTERS).map(k => '<span class="grpick"><i style="color:' + STARTERS[k].colour + '">' + STARTERS[k].mark + '</i><b>' + STARTERS[k].name + '</b> ' + esc(STARTERS[k].blurb) + '</span>').join(''),
+        return talk('<b>Home.</b> Choose your partner:<br>' + Object.keys(STARTERS).map(k => '<span class="grpick">' + sprite(k, 2.5) + '<b>' + STARTERS[k].name + '</b> ' + esc(STARTERS[k].blurb) + '</span>').join(''),
           Object.keys(STARTERS).map(k => ({ label: STARTERS[k].name, go: pick(k) })));
       }
       team.hp = partnerStats().max; saveTeam(); sound.caught();
@@ -216,13 +219,13 @@
     // the message bottom left and a 2 x 2 menu bottom right (Fight / Catch / Partner / Run)
     const drawBattle = (line, hit) => {
       const P = STARTERS[team.kind], ps = partnerStats(), f = fight.foe, off = fight.busy ? ' disabled' : '';
-      const mon = (who, c, m, gone) => '<div class="grmon ' + who + (hit === who ? ' hit' : '') + (gone ? ' out' : '') + '" style="--c:' + c + '"><i>' + m + '</i><span class="grplat"></span></div>';
+      const mon = (who, c, key, gone) => '<div class="grmon ' + who + (hit === who ? ' hit' : '') + (gone ? ' out' : '') + '" style="--c:' + c + '">' + sprite(key, who === 'me' ? 7 : 5.5, who === 'foe') + '<span class="grplat"></span></div>';
       const info = (who, name, lvl, type, now, max) => '<div class="grinfo ' + who + '"><b>' + name + '</b><small>Lv ' + lvl + ' · ' + type + '</small>' + hpBar(now, max) + (who === 'me' ? '<em>' + now + ' / ' + max + '</em>' : '') + '</div>';
       const menu = fight.menu === 'moves'
         ? P.moves.map((m, i) => '<button type="button" data-m="' + i + '"' + off + ' class="' + (m.pow ? m.kind : 'skill') + '"><kbd>' + (i + 1) + '</kbd>' + m.n + '<small>' + (m.pow ? m.pow + ' power' : m.kind === 'heal' ? 'heal' : m.kind === 'guard' ? 'defence up' : 'their attack down') + '</small></button>').join('')
         : '<button type="button" data-c="fight" class="fight"' + off + '><kbd>1</kbd>Fight</button><button type="button" data-c="catch" class="catch"' + off + '><kbd>2</kbd>Catch</button>' +
           '<button type="button" data-c="partner" class="partner"' + off + '><kbd>3</kbd>Partner</button><button type="button" data-c="run" class="run"' + off + '><kbd>4</kbd>Run</button>';
-      box.innerHTML = '<div class="grscene">' + mon('foe', f.d.colour, f.d.mark, f.hp <= 0) + mon('me', P.colour, P.mark, team.hp <= 0) +
+      box.innerHTML = '<div class="grscene">' + mon('foe', f.d.colour, f.d.id, f.hp <= 0) + mon('me', P.colour, team.kind, team.hp <= 0) +
         info('foe', esc(f.d.name), f.lvl, f.type, f.hp, f.max) + info('me', P.name, team.lvl, P.type, team.hp, ps.max) + '</div>' +
         '<div class="grcmd"><p class="grlog">' + line + '</p><div class="grmenu' + (fight.menu === 'moves' ? ' moves' : '') + '">' + menu + '</div></div>' +
         (fight.menu === 'moves' ? '<button type="button" class="grback" data-c="back">Back · Esc</button>' : '');
