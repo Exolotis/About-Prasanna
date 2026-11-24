@@ -581,6 +581,62 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .nwpkind button.on{background:#f5f5f7!important;color:#000!important;box-shadow:none!important}
 .nwsgtag,.nwsgtag.book{background:rgba(255,255,255,.08)!important;color:#f5f5f7!important}
 .nwptile em{color:var(--mute)!important}
+
+/* Moluscca GR battles */
+.grbt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.grside{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.grside i{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#000;font:700 20px/1 var(--f);font-style:normal;animation:grbob 1.2s ease-in-out infinite}
+.grside.me i{animation-delay:-.6s}
+.grside>div{min-width:0;flex:1}.grside b{display:block;font:600 13.5px var(--f);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.grside b small{color:var(--mute);font-weight:500}
+.grhp{display:block;height:6px;margin-top:6px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}.grhp u{display:block;height:100%;background:#30d158;border-radius:999px;transition:width .4s}.grhp u.mid{background:#ffd60a}.grhp u.low{background:#ff453a}
+.grhpn{display:block;margin-top:3px;color:var(--mute);font:500 11px var(--f)}
+.grlog{margin:0 0 10px;font:500 13.5px/1.45 var(--f);color:#e5e5ea;min-height:2.9em}
+.grmoves{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.grmoves button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 11px;border:0;border-radius:12px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);color:#f5f5f7;cursor:pointer;text-align:left}
+.grmoves button:hover{background:rgba(255,255,255,.14)}.grmoves button:disabled,.grbtns button:disabled{opacity:.45;cursor:default}
+.grmoves b{font:600 13.5px var(--f)}.grmoves small{color:var(--mute);font:500 11px var(--f)}
+.grpick{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--mute)}.grpick i{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#000;font:700 16px var(--f);font-style:normal}.grpick b{color:#f5f5f7}
+
+/* Moluscca GR battle arena + numbered choices */
+.grbtns kbd{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:7px;border-radius:5px;background:rgba(0,0,0,.18);font:700 11px var(--f)}
+.grbtns .bgghost kbd{background:rgba(255,255,255,.12)}
+.grarena{position:relative;height:128px;margin:-4px -4px 10px;border-radius:14px;overflow:hidden;background:radial-gradient(120% 90% at 50% 120%,rgba(48,209,88,.28),transparent 60%),linear-gradient(180deg,#1b2b4a,#2a4a3a 70%,#2f5d3a)}
+.grarena::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.25))}
+.grmon{position:absolute;z-index:1;display:grid;justify-items:center}
+.grmon.foe{right:16%;top:12px}.grmon.me{left:14%;bottom:8px}
+.grmon i{position:relative;z-index:1;width:58px;height:58px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.25),rgba(0,0,0,.65));color:var(--c);font:700 28px/1 var(--f);font-style:normal;box-shadow:0 0 26px -4px var(--c),inset 0 0 0 2px rgba(255,255,255,.12);animation:grbob 1.4s ease-in-out infinite}
+.grmon.me i{width:66px;height:66px;font-size:32px;animation-delay:-.7s}
+.grplat{width:96px;height:18px;margin-top:-8px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.22),rgba(255,255,255,0));box-shadow:0 0 18px -6px var(--c)}
+.grmon.hit i{animation:grhit .45s ease-out 1}
+@keyframes grhit{0%{transform:translateX(0);filter:brightness(3)}20%{transform:translateX(-7px)}40%{transform:translateX(6px);filter:brightness(1.6)}60%{transform:translateX(-4px)}100%{transform:none;filter:none}}
+.grmon.out i{opacity:.25;transform:translateY(10px) scale(.8);transition:all .5s}
+@media(max-width:720px){.grarena{height:110px}.grmon i{width:48px;height:48px;font-size:22px}.grmon.me i{width:54px;height:54px;font-size:26px}}
+
+/* Moluscca GR classic battle screen (our own art: CSS shapes + our creatures) */
+.grbox.grbattle{left:0;right:0;bottom:0;top:0;padding:0;border-radius:0;display:flex;flex-direction:column;background:#0d1117}
+.grscene{position:relative;flex:1;min-height:200px;overflow:hidden;background:linear-gradient(180deg,#9fd3ff 0%,#cdeccf 52%,#8fd18a 53%,#6fbf6a 100%)}
+.grscene::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 2px,transparent 2px 18px);mix-blend-mode:soft-light}
+.grscene .grmon.foe{right:12%;top:16%}.grscene .grmon.me{left:10%;bottom:6%}
+.grscene .grplat{width:150px;height:34px;margin-top:-14px;border-radius:50%;background:radial-gradient(closest-side,#5fae55 0 62%,#4a9442 63% 80%,transparent 81%);box-shadow:0 6px 0 -2px rgba(0,0,0,.12)}
+.grscene .grmon.me .grplat{width:190px;height:42px}
+.grscene .grmon i{width:74px;height:74px;font-size:34px;background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.35) 0,rgba(255,255,255,0) 26%),radial-gradient(circle,#232838,#0b0d12 72%);box-shadow:0 0 0 3px #0b0d12,0 0 24px -4px var(--c),inset 0 0 0 2px rgba(255,255,255,.08)}
+.grscene .grmon.me i{width:92px;height:92px;font-size:42px}
+.grinfo{position:absolute;z-index:2;min-width:190px;padding:8px 12px 9px;border-radius:12px 12px 12px 4px;background:rgba(250,250,245,.96);color:#1d1d1f;box-shadow:0 4px 0 rgba(0,0,0,.18),inset 0 0 0 2px #3a3f4b}
+.grinfo.foe{left:5%;top:10%}.grinfo.me{right:5%;bottom:10%;border-radius:12px 12px 4px 12px}
+.grinfo b{font:700 14px var(--f)}.grinfo small{float:right;margin-left:10px;color:#55575f;font:700 12px var(--f)}
+.grinfo .grhp{height:7px;margin-top:6px;background:#3a3f4b}.grinfo em{display:block;margin-top:3px;text-align:right;color:#3a3f4b;font:700 12px var(--f);font-style:normal}
+.grcmd{display:grid;grid-template-columns:1.1fr 1fr;gap:10px;padding:10px;background:#11151c;box-shadow:inset 0 2px 0 rgba(255,255,255,.06)}
+.grcmd .grlog{margin:0;padding:10px 14px;border-radius:12px;background:#f7f7f2;color:#1d1d1f;font:600 14px/1.4 var(--f);box-shadow:inset 0 0 0 2px #3a3f4b;min-height:auto}
+.grmenu{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grmenu button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border:0;border-radius:12px;color:#fff;font:800 14px var(--f);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),inset 0 0 0 2px rgba(255,255,255,.18)}
+.grmenu button kbd{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;background:rgba(0,0,0,.22);font:700 10.5px var(--f)}
+.grmenu .fight{background:#e2564a}.grmenu .catch{background:#e3a32b}.grmenu .partner{background:#3fa55b}.grmenu .run{background:#3f74d6}
+.grmenu.moves button{flex-direction:row;flex-wrap:wrap;text-transform:none;letter-spacing:0;font-size:13.5px;background:#2a3140}
+.grmenu.moves button small{width:100%;margin-top:-2px;color:rgba(255,255,255,.65);font:600 10.5px var(--f)}
+.grmenu.moves .market{background:#b98a12}.grmenu.moves .data{background:#3f63c7}.grmenu.moves .shield{background:#2f8a4a}.grmenu.moves .normal{background:#5b6270}.grmenu.moves .skill{background:#7b4fb8}
+.grmenu button:disabled{opacity:.5;cursor:default}
+.grback{position:absolute;right:14px;top:10px;z-index:3;height:30px;padding:0 12px;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font:600 12px var(--f);cursor:pointer}
+@media(max-width:720px){.grbox.grbattle{position:static}.grscene{min-height:190px}.grcmd{grid-template-columns:1fr}.grinfo{min-width:150px;padding:6px 9px}.grscene .grmon i{width:56px;height:56px;font-size:26px}.grscene .grmon.me i{width:68px;height:68px;font-size:30px}.grscene .grplat{width:110px}.grscene .grmon.me .grplat{width:140px}}
 </style>
 </head>
 <body>

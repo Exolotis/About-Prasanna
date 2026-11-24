@@ -21,19 +21,36 @@
     'T...QQQQ.....=.....,,,,,,..T',
     'T...QqQQ.....=.....,,,,,,..T',
     'T....=========....,,,,.....T',
-    'T........,,,,=........F....T',
-    'T,,,,,,......=......,,,,,,.T',
+    'T........,,,,=.HHH....F....T',
+    'T,,,,,,......=.HhH..,,,,,,.T',
     'T,,,,,,......=......,,,,,,.T',
     'T....F.......=...........F.T',
     'TTTTTTTTTTTTTTTTTTTTTTTTTTTT'
   ];
   const ROWS = MAP.length, COLS = MAP[0].length;
-  const BLOCKED = 'T~AQS';
+  const BLOCKED = 'T~AQSH';
   const BUILDINGS = {
     A: { name: 'API Lab', roof: '#7C9CFF', door: 'a', gives: 'api', text: 'The API Lab. Risk maths and India data in one request.', url: 'https://api.moluscca.com' },
     S: { name: 'Templates', roof: '#f5f5f7', door: 's', gives: 'templates', text: 'The Templates Store. Dashboards with the maths built in.', url: 'https://templates.moluscca.com' },
-    Q: { name: 'Skill Shop', roof: '#30d158', door: 'q', gives: 'quant', text: 'The Skill Shop. Quant Risk Dashboard, a Claude skill.', url: 'https://www.moluscca.com/products' }
+    Q: { name: 'Skill Shop', roof: '#30d158', door: 'q', gives: 'quant', text: 'The Skill Shop. Quant Risk Dashboard, a Claude skill.', url: 'https://www.moluscca.com/products' },
+    H: { name: 'Home', roof: '#f5f5f7', door: 'h', home: true }
   };
+
+  /* ---------- battles: partners, moves and types ----------
+     market beats data, data beats shield, shield beats market (1.5x one way, 0.67x the other) */
+  const STARTERS = {
+    volty: { name: 'Volty', mark: '≋', colour: '#ffd60a', type: 'market', blurb: 'Fast and sharp. Hits hard, a little wild.', base: { hp: 44, atk: 15, def: 9 },
+      moves: [{ n: 'Spike', pow: 40, acc: 1, kind: 'market' }, { n: 'Jitter', pow: 0, acc: .95, kind: 'lower' }, { n: 'Surge', pow: 72, acc: .75, kind: 'market' }, { n: 'Quick Hit', pow: 32, acc: 1, kind: 'normal' }] },
+    hedge: { name: 'Hedge', mark: '⬢', colour: '#30d158', type: 'shield', blurb: 'A tank. Shrugs off hits and patches itself up.', base: { hp: 58, atk: 10, def: 14 },
+      moves: [{ n: 'Shell Bash', pow: 40, acc: 1, kind: 'shield' }, { n: 'Brace', pow: 0, acc: 1, kind: 'guard' }, { n: 'Cover', pow: 0, acc: 1, kind: 'heal' }, { n: 'Slam', pow: 56, acc: .9, kind: 'normal' }] },
+    delta: { name: 'Delta', mark: 'Δ', colour: '#7C9CFF', type: 'data', blurb: 'Balanced. Steals a little health with every hit.', base: { hp: 50, atk: 12, def: 11 },
+      moves: [{ n: 'Pulse', pow: 40, acc: 1, kind: 'data' }, { n: 'Rebalance', pow: 0, acc: 1, kind: 'heal' }, { n: 'Arbitrage', pow: 36, acc: 1, kind: 'drain' }, { n: 'Shock', pow: 62, acc: .85, kind: 'data' }] }
+  };
+  const WILD_TYPE = { api: 'data', templates: 'data', quant: 'shield', monte: 'market', tail: 'market', climate: 'shield' };
+  const BEATS = { market: 'data', data: 'shield', shield: 'market' };
+  const typeBoost = (moveType, targetType) => BEATS[moveType] === targetType ? 1.5 : BEATS[targetType] === moveType ? .67 : 1;
+  const statsAt = (base, lvl) => ({ max: base.hp + lvl * 4, atk: base.atk + lvl * 2, def: base.def + lvl * 2 });
+
   const DEX = [   // the six things you can collect
     { id: 'api', name: 'API', mark: '{ }', colour: '#7C9CFF', line: 'Risk maths and India data in one request.', url: 'https://api.moluscca.com', hard: .5 },
     { id: 'templates', name: 'Templates', mark: '▦', colour: '#f5f5f7', line: 'Dashboard templates with the maths built in.', url: 'https://templates.moluscca.com', hard: .5 },
@@ -75,7 +92,15 @@
       if (!music) { music = new Audio('/mgr-town.mp3'); music.loop = true; music.volume = .35; }
       music.play().catch(() => {});
     };
-    const musicOff = () => { playing = false; if (music) music.pause(); };
+    // battle music: "Battle 1" from the same pack (CC0). Swaps in during a fight, town music comes back after.
+    let battle = null, fighting = false;
+    const musicOff = () => { playing = false; if (music) music.pause(); if (battle) battle.pause(); };
+    const battleOn = () => {
+      fighting = true; if (music) music.pause(); if (muted) return;
+      if (!battle) { battle = new Audio('/mgr-battle.mp3'); battle.loop = true; battle.volume = .35; }
+      battle.currentTime = 0; battle.play().catch(() => {});
+    };
+    const battleOff = () => { fighting = false; if (battle) battle.pause(); if (playing && !muted && music) music.play().catch(() => {}); };
     return {
       step: alt => note(alt ? 196 : 174, .04, 'triangle', .06),
       bump: () => note(120, .09, 'square', .03, 0, 80),
@@ -87,10 +112,11 @@
       door: () => { note(392, .09, 'triangle', .06); note(587, .16, 'triangle', .06, .09); },
       complete: () => { tune([523, 659, 784, 1047, 784, 1047, 1319], .1, .12, 'square', .03); note(1568, .5, 'triangle', .05, .72); },
       get muted() { return muted; },
-      musicOn, musicOff,
+      musicOn, musicOff, battleOn, battleOff,
       setMuted: m => {
         muted = m; store.set('mgr-mute', m);
-        if (m) { if (music) music.pause(); } else { note(880, .05, 'square', .02); if (playing) musicOn(); }
+        if (m) { if (music) music.pause(); if (battle) battle.pause(); }
+        else { note(880, .05, 'square', .02); if (fighting) battleOn(); else if (playing) musicOn(); }
       }
     };
   })();
@@ -135,8 +161,8 @@
     const talk = (html, buttons) => {
       mode = 'talk'; box.hidden = false; sound.blip();
       box.innerHTML = '<div class="grtext">' + html + '</div><div class="grbtns">' + buttons.map((b, i) => b.url
-        ? '<a class="sdnew' + (i ? ' bgghost' : '') + '" href="' + b.url + '" target="_blank" rel="noopener">' + b.label + '</a>'
-        : '<button type="button" class="sdnew' + (i ? ' bgghost' : '') + '" data-i="' + i + '">' + b.label + '</button>').join('') + '</div>';
+        ? '<a class="sdnew' + (i ? ' bgghost' : '') + '" href="' + b.url + '" target="_blank" rel="noopener"><kbd>' + (i + 1) + '</kbd>' + b.label + '</a>'
+        : '<button type="button" class="sdnew' + (i ? ' bgghost' : '') + '" data-i="' + i + '"><kbd>' + (i + 1) + '</kbd>' + b.label + '</button>').join('') + '</div>';
       box.querySelectorAll('button[data-i]').forEach(el => el.onclick = () => buttons[+el.dataset.i].go());
       const first = box.querySelector('button, a'); if (first) first.focus({ preventScroll: true });
     };
@@ -163,6 +189,128 @@
       } else { talk('<b>Oh no, ' + esc(d.name) + ' slipped away.</b> Try again in the grass.', [{ label: 'OK', go: done }]); sound.escaped(); }
     };
 
+    /* ----- your partner (saved in this browser) ----- */
+    let team = store.get('mgr-team');                       // { kind, lvl, xp, hp }
+    if (team && !STARTERS[team.kind]) team = null;
+    const saveTeam = () => store.set('mgr-team', team);
+    const partnerStats = () => statsAt(STARTERS[team.kind].base, team.lvl);
+    const HOME_SPOT = { x: 16, y: 17 };                      // the grass just below Home's door
+
+    const enterHome = () => {
+      if (!team) {
+        const pick = k => () => {
+          const st = statsAt(STARTERS[k].base, 5); team = { kind: k, lvl: 5, xp: 0, hp: st.max }; saveTeam(); sound.caught();
+          talk('<b>' + STARTERS[k].name + ' is your partner!</b> Walk into the tall grass to battle wild things. Weaken one, then press Catch.', [{ label: "Let's go", go: done }]);
+        };
+        return talk('<b>Home.</b> Choose your partner:<br>' + Object.keys(STARTERS).map(k => '<span class="grpick"><i style="color:' + STARTERS[k].colour + '">' + STARTERS[k].mark + '</i><b>' + STARTERS[k].name + '</b> ' + esc(STARTERS[k].blurb) + '</span>').join(''),
+          Object.keys(STARTERS).map(k => ({ label: STARTERS[k].name, go: pick(k) })));
+      }
+      team.hp = partnerStats().max; saveTeam(); sound.caught();
+      talk('<b>Home.</b> ' + STARTERS[team.kind].name + ' (Lv ' + team.lvl + ') is fully rested.', [{ label: 'Back outside', go: done }]);
+    };
+
+    /* ----- a battle ----- */
+    let fight = null;                                          // { foe, me, busy, guard, foeWeak }
+    const hpBar = (now, max) => '<span class="grhp"><u style="width:' + Math.max(0, Math.round(now / max * 100)) + '%" class="' + (now / max < .25 ? 'low' : now / max < .5 ? 'mid' : '') + '"></u></span>';
+    // classic battle screen: the wild one top right with its HP box, your partner bottom left with yours,
+    // the message bottom left and a 2 x 2 menu bottom right (Fight / Catch / Partner / Run)
+    const drawBattle = (line, hit) => {
+      const P = STARTERS[team.kind], ps = partnerStats(), f = fight.foe, off = fight.busy ? ' disabled' : '';
+      const mon = (who, c, m, gone) => '<div class="grmon ' + who + (hit === who ? ' hit' : '') + (gone ? ' out' : '') + '" style="--c:' + c + '"><i>' + m + '</i><span class="grplat"></span></div>';
+      const info = (who, name, lvl, type, now, max) => '<div class="grinfo ' + who + '"><b>' + name + '</b><small>Lv ' + lvl + ' · ' + type + '</small>' + hpBar(now, max) + (who === 'me' ? '<em>' + now + ' / ' + max + '</em>' : '') + '</div>';
+      const menu = fight.menu === 'moves'
+        ? P.moves.map((m, i) => '<button type="button" data-m="' + i + '"' + off + ' class="' + (m.pow ? m.kind : 'skill') + '"><kbd>' + (i + 1) + '</kbd>' + m.n + '<small>' + (m.pow ? m.pow + ' power' : m.kind === 'heal' ? 'heal' : m.kind === 'guard' ? 'defence up' : 'their attack down') + '</small></button>').join('')
+        : '<button type="button" data-c="fight" class="fight"' + off + '><kbd>1</kbd>Fight</button><button type="button" data-c="catch" class="catch"' + off + '><kbd>2</kbd>Catch</button>' +
+          '<button type="button" data-c="partner" class="partner"' + off + '><kbd>3</kbd>Partner</button><button type="button" data-c="run" class="run"' + off + '><kbd>4</kbd>Run</button>';
+      box.innerHTML = '<div class="grscene">' + mon('foe', f.d.colour, f.d.mark, f.hp <= 0) + mon('me', P.colour, P.mark, team.hp <= 0) +
+        info('foe', esc(f.d.name), f.lvl, f.type, f.hp, f.max) + info('me', P.name, team.lvl, P.type, team.hp, ps.max) + '</div>' +
+        '<div class="grcmd"><p class="grlog">' + line + '</p><div class="grmenu' + (fight.menu === 'moves' ? ' moves' : '') + '">' + menu + '</div></div>' +
+        (fight.menu === 'moves' ? '<button type="button" class="grback" data-c="back">Back · Esc</button>' : '');
+      box.querySelectorAll('[data-m]').forEach(b => b.onclick = () => battleMove(+b.dataset.m));
+      box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => battlePick(b.dataset.c));
+      fight.line = line;
+    };
+    // the main menu: Fight opens the moves, Partner shows your partner's details
+    const battlePick = c => {
+      if (!fight || fight.busy) return;
+      if (c === 'fight') { fight.menu = 'moves'; return drawBattle('Choose a move for ' + STARTERS[team.kind].name + '.'); }
+      if (c === 'back') { fight.menu = 'main'; return drawBattle('What will ' + STARTERS[team.kind].name + ' do?'); }
+      if (c === 'catch') return battleCatch();
+      if (c === 'run') return battleRun();
+      if (c === 'partner') { const P = STARTERS[team.kind], ps = partnerStats(); return drawBattle('<b>' + P.name + '</b> · ' + P.type + ' type · Lv ' + team.lvl + ' · ' + team.xp + '/' + team.lvl * 20 + ' XP · attack ' + ps.atk + ', defence ' + ps.def + '. ' + esc(P.blurb) + ' Market beats data, data beats shield, shield beats market.'); }
+    };
+    const hurt = (pow, atk, def, lvl, moveType, targetType) => {
+      const boost = typeBoost(moveType, targetType);
+      return { dmg: Math.max(1, Math.round((pow * (atk / def) * (.5 + lvl / 10) / 5 + 2) * boost * (.85 + Math.random() * .15))), boost };
+    };
+    const startBattle = d => {
+      const lvl = Math.max(2, team.lvl + Math.floor(Math.random() * 3) - 1 + (d.id === 'tail' ? 2 : 0));
+      const st = statsAt({ hp: 38 + d.hard * 20, atk: 9 + d.hard * 6, def: 9 + d.hard * 4 }, lvl);
+      fight = { foe: { d, lvl, type: WILD_TYPE[d.id] || 'data', max: Math.round(st.max), hp: Math.round(st.max), atk: st.atk, def: st.def }, busy: false, guard: 1, foeWeak: 1, menu: 'main' };
+      mode = 'battle'; box.hidden = false; box.classList.add('grbattle'); sound.meet(); sound.battleOn();
+      if (team.hp <= 0) team.hp = 1;
+      drawBattle('A wild <b>' + esc(d.name) + '</b> appeared! What will ' + STARTERS[team.kind].name + ' do?');
+    };
+    const endBattle = () => { fight = null; saveTeam(); box.classList.remove('grbattle'); sound.battleOff(); done(); };
+    const foeTurn = line => {
+      const f = fight.foe, ps = partnerStats();
+      const pow = f.d.id === 'tail' ? 40 : 30, hit = Math.random() < .9;
+      if (!hit) { fight.busy = false; fight.menu = 'main'; return drawBattle(line + ' ' + esc(f.d.name) + ' missed!'); }
+      const { dmg, boost } = hurt(pow * fight.foeWeak, f.atk, ps.def * fight.guard, f.lvl, f.type, STARTERS[team.kind].type);
+      team.hp = Math.max(0, team.hp - dmg); sound.bump();
+      line += ' ' + esc(f.d.name) + ' hits back for ' + dmg + (boost > 1 ? ', it is strong against you!' : '.');
+      if (team.hp <= 0) {
+        fight.busy = true; drawBattle(line, 'me');
+        return setTimeout(() => {
+          team.hp = partnerStats().max; saveTeam(); fight = null; box.classList.remove('grbattle'); sound.battleOff();
+          me.x = me.tx = HOME_SPOT.x; me.y = me.ty = HOME_SPOT.y; me.px = me.x * TILE; me.py = me.y * TILE; me.moving = false; sound.escaped();
+          talk('<b>' + STARTERS[team.kind].name + ' fainted.</b> You hurry home and rest. All healed, try again!', [{ label: 'OK', go: done }]);
+        }, 900);
+      }
+      fight.busy = false; fight.menu = 'main'; drawBattle(line, 'me');
+    };
+    const battleMove = i => {
+      if (!fight || fight.busy || mode !== 'battle') return;
+      const P = STARTERS[team.kind], m = P.moves[i], f = fight.foe, ps = partnerStats(); if (!m) return;
+      fight.busy = true; let line;
+      if (Math.random() > m.acc) line = P.name + ' used ' + m.n + ', but it missed.';
+      else if (m.kind === 'heal') { const add = Math.round(ps.max * .35); team.hp = Math.min(ps.max, team.hp + add); line = P.name + ' used ' + m.n + ' and healed ' + add + ' HP.'; sound.blip(); }
+      else if (m.kind === 'guard') { fight.guard = Math.min(2, fight.guard + .4); line = P.name + ' used ' + m.n + '. Defence up!'; sound.blip(); }
+      else if (m.kind === 'lower') { fight.foeWeak = Math.max(.5, fight.foeWeak - .2); line = P.name + ' used ' + m.n + '. ' + esc(f.d.name) + '\'s attack fell!'; sound.blip(); }
+      else {
+        const { dmg, boost } = hurt(m.pow * 1.45, ps.atk, f.def, team.lvl, m.kind === 'drain' ? P.type : m.kind, f.type);
+        f.hp = Math.max(0, f.hp - dmg); sound.step(1);
+        line = P.name + ' used ' + m.n + ' for ' + dmg + (boost > 1 ? '. Super effective!' : boost < 1 ? '. Not very effective.' : '.'); fight.hitSide = 'foe';
+        if (m.kind === 'drain') { const back = Math.round(dmg / 2); team.hp = Math.min(ps.max, team.hp + back); line += ' Took back ' + back + ' HP.'; }
+      }
+      drawBattle(line, fight.hitSide); fight.hitSide = '';
+      if (f.hp <= 0) {
+        return setTimeout(() => {
+          const xp = 10 + f.lvl * 4; team.xp += xp; let up = '';
+          while (team.xp >= team.lvl * 20) { team.xp -= team.lvl * 20; team.lvl++; up = ' ' + STARTERS[team.kind].name + ' grew to Lv ' + team.lvl + '!'; }
+          sound.caught(); endBattle();
+          talk('<b>' + esc(f.d.name) + ' fainted.</b> +' + xp + ' XP.' + up + ' Weaken one without knocking it out to catch it.', [{ label: 'Nice', go: done }]);
+        }, 700);
+      }
+      setTimeout(() => fight && foeTurn(line), 700);
+    };
+    const battleCatch = () => {
+      if (!fight || fight.busy) return;
+      const f = fight.foe, chance = Math.min(.95, Math.max(.08, (1 - f.hp / f.max) * .95 + .12 - f.d.hard * .25));
+      fight.busy = true; drawBattle('You throw a net…');
+      setTimeout(() => {
+        if (!fight) return;
+        if (Math.random() < chance) {
+          const d = f.d, isNew = !caught.includes(d.id); save(d.id); const all = caught.length === DEX.length;
+          if (all && isNew) sound.complete(); else sound.caught();
+          endBattle();
+          talk('<b>Gotcha! ' + esc(d.name) + ' was caught.</b>' + (isNew ? ' Added to your Molusdex.' : ' You already had one.') + (all ? '<br>That is all six. Molusdex complete!' : ''),
+            d.url ? [{ label: 'Nice', go: done }, { label: 'Visit ' + d.name, url: d.url }] : [{ label: 'Nice', go: done }]);
+        } else { sound.escaped(); foeTurn(esc(f.d.name) + ' broke free!'); }
+      }, 700);
+    };
+    const battleRun = () => { if (!fight || fight.busy) return; endBattle(); };
+
     /* ----- moving around ----- */
     const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
     const tryStep = dir => {
@@ -174,6 +322,7 @@
       me.x = me.tx; me.y = me.ty; me.moving = false; const t = tileAt(me.x, me.y);
       if (t === ',') sound.rustle(); else sound.step(steps++ % 2);
       const b = Object.values(BUILDINGS).find(b => b.door === t);
+      if (b && b.home && lastDoor !== t) { lastDoor = t; held.clear(); sound.door(); return enterHome(); }
       if (b && lastDoor !== t) {
         lastDoor = t; const thing = DEX.find(d => d.id === b.gives), isNew = !caught.includes(thing.id); save(thing.id);
         held.clear(); sound.door();
@@ -184,11 +333,13 @@
       if (t === ',' && Math.random() < .2) {
         // mostly things you have not caught yet, sometimes a repeat
         const missing = DEX.filter(d => !caught.includes(d.id)), pool = missing.length && Math.random() < .8 ? missing : DEX;
-        held.clear(); meet(pool[Math.floor(Math.random() * pool.length)]);
+        held.clear(); const wild = pool[Math.floor(Math.random() * pool.length)];
+        if (team) startBattle(wild); else meet(wild);   // no partner yet: the old quick catch
       }
     };
     const act = () => {
       if (mode === 'catch') return tryCatch();
+      if (mode === 'battle') return;
       if (mode === 'talk') { const b = box.querySelector('button'); if (b) b.click(); return; }
       // talking to a sign: look at the tile in front
       const [dx, dy] = DIRS[me.face], t = tileAt(me.x + dx, me.y + dy);
@@ -201,7 +352,7 @@
     const T = { grass: 0, grassTuft: 1, flowers: 2, plants: 17, tree: 28, autumnTree: 27, bush: 5, path: 25, mushrooms: 29 };
     const ROOF = { blue: [[48, 49, 50], [60, 61, 62]], red: [[52, 53, 54], [64, 65, 66]] };
     const WALL = { stone: { window: 88, door: 89 }, wood: { window: 84, door: 85 } };
-    const LOOK = { A: { roof: 'blue', wall: 'stone' }, S: { roof: 'red', wall: 'wood' }, Q: { roof: 'blue', wall: 'wood' } };
+    const LOOK = { A: { roof: 'blue', wall: 'stone' }, S: { roof: 'red', wall: 'wood' }, Q: { roof: 'blue', wall: 'wood' }, H: { roof: 'red', wall: 'wood' } };
     const spot = (x, y) => ((x * 73856093) ^ (y * 19349663)) >>> 0;     // a fixed "random" number per square, so the map never flickers
     const put = (n, sx, sy) => ctx.drawImage(sheet, (n % 12) * 16, Math.floor(n / 12) * 16, 16, 16, sx, sy, TILE, TILE);
     // where each building sits, worked out once from the map
@@ -299,8 +450,10 @@
     const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
     const onKey = e => {
       if (ov.hidden) return;
-      if (e.key === 'Escape') { e.preventDefault(); return close(); }
+      if (e.key === 'Escape') { e.preventDefault(); if (mode === 'battle' && fight && fight.menu === 'moves') return battlePick('back'); return close(); }
       if ((e.key === 'm' || e.key === 'M') && e.type === 'keydown') { e.preventDefault(); return toggleMute(); }
+      if (mode === 'talk' && e.type === 'keydown' && /^[1-9]$/.test(e.key)) { const pick = box.querySelectorAll('.grbtns > button, .grbtns > a')[+e.key - 1]; if (pick) { e.preventDefault(); pick.click(); } return; }
+      if (mode === 'battle' && e.type === 'keydown' && fight) { const k = e.key.toLowerCase(); if (k === 'escape' && fight.menu === 'moves') { e.preventDefault(); return battlePick('back'); } if ('1234'.includes(k) && k) { e.preventDefault(); return fight.menu === 'moves' ? battleMove(+k - 1) : battlePick(['fight', 'catch', 'partner', 'run'][+k - 1]); } if (k === 'c') { e.preventDefault(); return battleCatch(); } if (k === 'r') { e.preventDefault(); return battleRun(); } }
       if (e.key === ' ' || e.key === 'Enter') { if (e.target.tagName === 'A') return; e.preventDefault(); if (e.type === 'keydown' && !e.repeat) act(); return; }
       const k = KEYS[e.key]; if (!k) return; e.preventDefault();
       if (e.type === 'keydown') held.add(k); else held.delete(k);
@@ -328,7 +481,7 @@
 
     function open() {
       ov.hidden = false; document.documentElement.classList.add('grlock'); setCount(); running = true; sound.musicOn(); cv.tabIndex = 0; cv.focus({ preventScroll: true });
-      if (!caught.length && mode === 'walk' && frame === 0) talk('<b>Welcome to Moluscca Global Revolution!</b> You are the octopus. Walk into the tall grass to meet wild things, and visit the three buildings. Catch all six.', [{ label: "Let's go", go: done }]);
+      if (!caught.length && mode === 'walk' && frame === 0) talk('<b>Welcome to Moluscca Global Revolution!</b> You are the octopus. First visit <b>Home</b>, the little house by the path, to choose your partner. Then walk into the tall grass to battle wild things and catch all six.', [{ label: "Let's go", go: done }]);
       requestAnimationFrame(loop);
     }
     function close() { ov.hidden = true; running = false; sound.musicOff(); held.clear(); document.documentElement.classList.remove('grlock'); renderDex(); }
