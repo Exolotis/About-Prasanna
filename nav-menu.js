@@ -3,7 +3,7 @@
   const nav = document.querySelector('.nav'); if (!nav) return;
   // the sections: the bar's own links, plus the ones added later (Right now, Writing, Gallery) when they are on the page
   const links = [...nav.querySelectorAll('a[href^="#"]')].filter(a => !a.classList.contains('me') && !a.classList.contains('cta')).map(a => [a.getAttribute('href'), a.textContent.trim()]);
-  [['#now', 'Right now', '#play'], ['#writing', 'Writing', '#play'], ['#gallery', 'Gallery', '#play']].forEach(([href, name, before]) => {
+  [['#now', 'Right now', '#play'], ['#writing', 'Writing', '#play'], ['#gallery', 'Gallery', '']].forEach(([href, name, before]) => {
     if (links.some(l => l[0] === href) || !document.querySelector(href)) return;
     const i = links.findIndex(l => l[0] === before); links.splice(i < 0 ? links.length : i, 0, [href, name]);
   });
