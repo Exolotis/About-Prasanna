@@ -215,6 +215,29 @@
     /* ----- a battle ----- */
     let fight = null;                                          // { foe, me, busy, guard, foeWeak }
     const hpBar = (now, max) => '<span class="grhp"><u style="width:' + Math.max(0, Math.round(now / max * 100)) + '%" class="' + (now / max < .25 ? 'low' : now / max < .5 ? 'mid' : '') + '"></u></span>';
+    // the battle backdrop, painted once from the town's own tiles (Kenney Tiny Town): sky, clouds, tree line, bushes, grass
+    let backdropUrl = '';
+    const backdrop = () => {
+      if (backdropUrl) return backdropUrl;
+      const W = 960, H = 400, K = 4, P = 16 * K, c = document.createElement('canvas'); c.width = W; c.height = H;
+      const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+      const tile = (n, x, y, k) => g.drawImage(sheet, (n % 12) * 16, Math.floor(n / 12) * 16, 16, 16, x, y, 16 * (k || K), 16 * (k || K));
+      const sky = g.createLinearGradient(0, 0, 0, 190); sky.addColorStop(0, '#7ec8ff'); sky.addColorStop(1, '#d8f1ff'); g.fillStyle = sky; g.fillRect(0, 0, W, 190);
+      // chunky pixel clouds
+      g.fillStyle = 'rgba(255,255,255,.9)';
+      [[90, 40], [380, 24], [700, 52], [860, 18]].forEach(([x, y]) => { [[0, 8, 64, 16], [12, 0, 40, 8], [8, 24, 52, 8]].forEach(([a, b, w, h]) => g.fillRect(x + a, y + b, w, h)); });
+      // far hills
+      g.fillStyle = '#9fd68f'; for (let x = 0; x < W; x += 8) { const h = 26 + Math.round(Math.sin(x / 70) * 10 + Math.sin(x / 23) * 4); g.fillRect(x, 190 - h, 8, h); }
+      // grass ground from the horizon down
+      for (let y = 190; y < H; y += P) for (let x = 0; x < W; x += P) tile(((x * 7 + y * 3) / P) % 9 === 0 ? 1 : 0, x, y);
+      // a few flowers
+      [[40, 330], [300, 360], [520, 300], [880, 350]].forEach(([x, y]) => tile(2, x, y, 3));
+      // tree line along the horizon, bushes in front of it
+      for (let x = -20; x < W; x += 52) tile(x % 3 === 0 ? 27 : 28, x, 120, 4);
+      g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(0, 186, W, 4);                          // soft shadow line under the trees
+      try { backdropUrl = c.toDataURL('image/png'); } catch (e) { backdropUrl = ''; }
+      return backdropUrl;
+    };
     // classic battle screen: the wild one top right with its HP box, your partner bottom left with yours,
     // the message bottom left and a 2 x 2 menu bottom right (Fight / Catch / Partner / Run)
     const drawBattle = (line, hit) => {
@@ -225,7 +248,7 @@
         ? P.moves.map((m, i) => '<button type="button" data-m="' + i + '"' + off + ' class="' + (m.pow ? m.kind : 'skill') + '"><kbd>' + (i + 1) + '</kbd>' + m.n + '<small>' + (m.pow ? m.pow + ' power' : m.kind === 'heal' ? 'heal' : m.kind === 'guard' ? 'defence up' : 'their attack down') + '</small></button>').join('')
         : '<button type="button" data-c="fight" class="fight"' + off + '><kbd>1</kbd>Fight</button><button type="button" data-c="catch" class="catch"' + off + '><kbd>2</kbd>Catch</button>' +
           '<button type="button" data-c="partner" class="partner"' + off + '><kbd>3</kbd>Partner</button><button type="button" data-c="run" class="run"' + off + '><kbd>4</kbd>Run</button>';
-      box.innerHTML = '<div class="grscene">' + mon('foe', f.d.colour, f.d.id, f.hp <= 0) + mon('me', P.colour, team.kind, team.hp <= 0) +
+      box.innerHTML = '<div class="grscene" style="background-image:url(' + backdrop() + ')">' + mon('foe', f.d.colour, f.d.id, f.hp <= 0) + mon('me', P.colour, team.kind, team.hp <= 0) +
         info('foe', esc(f.d.name), f.lvl, f.type, f.hp, f.max) + info('me', P.name, team.lvl, P.type, team.hp, ps.max) + '</div>' +
         '<div class="grcmd"><p class="grlog">' + line + '</p><div class="grmenu' + (fight.menu === 'moves' ? ' moves' : '') + '">' + menu + '</div></div>' +
         (fight.menu === 'moves' ? '<button type="button" class="grback" data-c="back">Back · Esc</button>' : '');

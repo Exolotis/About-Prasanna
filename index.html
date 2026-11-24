@@ -659,6 +659,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @keyframes grsparkle{to{inset:-22px;opacity:0}}
 .grorb.burst{animation:grburst .35s ease-out forwards}
 @keyframes grburst{to{opacity:0;filter:brightness(3);scale:2.2}}
+
+/* battle backdrop painted from the town tiles */
+.grscene{background-size:cover!important;background-position:center bottom!important;image-rendering:pixelated}
+.grscene::before{display:none}
 </style>
 </head>
 <body>
@@ -898,8 +902,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <section id="play">
   <div class="wrap">
     <div class="kick rv">Take a break</div>
-    <h2 class="rv">Nine games. <span class="g">Beat the board.</span></h2>
-    <p class="sub rv">An octopus adventure, chess and tic-tac-toe against the bot or a friend, plus Sudoku, Wordle, Memory and three one-minute maths games.</p>
+    <h2 class="rv">Six games. <span class="g">Beat the board.</span></h2>
+    <p class="sub rv">An octopus adventure, chess and tic-tac-toe against the bot or a friend, plus Sudoku, Wordle and a one-minute maths sprint.</p>
     <div class="sdk rv">
       <div class="sdh"><div class="seg" id="sdlv" role="tablist" aria-label="Difficulty"><button type="button" data-l="38" class="on">Easy</button><button type="button" data-l="46">Medium</button><button type="button" data-l="53">Hard</button></div><span class="sdt" id="sdt">0:00</span></div>
       <div class="sdg" id="sdg" role="grid" aria-label="Sudoku board"></div>
