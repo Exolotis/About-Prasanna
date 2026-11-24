@@ -705,6 +705,26 @@ footer.pf .wrap{position:relative;z-index:2}
 .pfglow i:nth-child(3){right:2%;background:#bf5af2;opacity:.7;animation-delay:-10s}
 @keyframes pfdrift{to{transform:translate(8%,-12%) scale(1.12)}}
 @media(prefers-reduced-motion:reduce){.pfglow i{animation:none}}
+
+/* hero skill line */
+.skill{display:inline-flex;align-items:center;gap:10px;margin:18px 0 0;padding:6px 16px 6px 6px;border-radius:999px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);font:600 15px var(--f);color:#f5f5f7}
+.skill span{padding:4px 10px;border-radius:999px;background:#f5f5f7;color:#000;font:700 11px var(--f);letter-spacing:.08em;text-transform:uppercase}
+/* hobbies photo tiles */
+.hb{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:14px;margin-top:56px}
+.hbt{position:relative;height:560px;border-radius:30px;overflow:hidden;background:#0b0b0d;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);isolation:isolate}
+.hbimgs img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.08);transition:opacity 1.2s ease,transform 7s ease}
+.hbimgs img.on{opacity:1;transform:scale(1)}
+.hbt::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.55) 66%,rgba(0,0,0,.9));pointer-events:none}
+.hbtxt{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:26px 26px 28px}
+.hbtag{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);color:#fff;font:600 12px var(--f);letter-spacing:.04em}
+.hbt.hbmc .hbtag{border-radius:4px}
+.hbtxt h3{margin:14px 0 6px;color:#fff;font:600 clamp(24px,2.3vw,30px)/1.1 var(--f);letter-spacing:-.03em}
+.hbtxt p{margin:0;color:rgba(255,255,255,.78);font-size:15px;line-height:1.5;max-width:380px}
+.hbdots{position:absolute;top:18px;right:18px;z-index:2;display:flex;gap:5px}
+.hbdots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .3s,width .3s}.hbdots i.on{width:16px;border-radius:3px;background:#fff}
+.hbsub{margin:64px 0 0;font:600 13px var(--f);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+@media(max-width:900px){.hb{grid-template-columns:1fr}.hbt{height:460px}.hbt.hbmc{height:340px}}
+@media(prefers-reduced-motion:reduce){.hbimgs img{transition:none}}
 </style>
 </head>
 <body>
@@ -724,6 +744,7 @@ footer.pf .wrap{position:relative;z-index:2}
       <div class="eyebrow"><span class="live"></span>Actuarial science, from Bangalore</div>
       <h1 aria-label="Prasanna Bhatkar"><span id="n1">Prasanna</span><br><span class="g" id="n2">Bhatkar.</span></h1>
       <p class="lede">I price risk nobody has priced yet.<br>Right now:<span class="rot" id="rot"><span class="on">merchant risk at Dodo Payments.</span><span>building Moluscca.</span><span>shipping Moluscca Templates.</span><span>chairing crisis committees.</span></span></p>
+      <p class="skill"><span>Skill</span>I can make it happen.</p>
       <div class="ctas"><a class="btn w" href="#building">See what I'm building</a><a class="btn o" href="https://cal.com/moluscca-support-rc4jcj/30min" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Book a call</a><a class="btn o" href="https://drive.google.com/drive/u/0/folders/12uHezXlF6-sCG7z94eg3mI9fGl5Q4kJx" target="_blank" rel="noopener">Resume</a></div>
     </div>
     <div class="pwrap"><div class="photo" id="photo"><img src="prasanna.jpg" alt="Prasanna Bhatkar"></div><div class="tag"><span>Best Paper, ACTCON 2025</span></div></div>
@@ -865,7 +886,13 @@ footer.pf .wrap{position:relative;z-index:2}
 <section id="lead">
   <div class="wrap">
     <div class="kick rv">Hobbies</div>
-    <h2 class="rv">Diplomacy as a <span class="g">contact sport.</span></h2>
+    <h2 class="rv">Off the clock. <span class="g">Three things I take too seriously.</span></h2>
+    <div class="hb rv">
+      <article class="hbt" data-hb><div class="hbimgs"><img src="/hobbies/mun-speech.jpg" alt="Prasanna speaking at a MUN" loading="lazy"><img src="/hobbies/mun-gavel.jpg" alt="Chairing with the gavel" loading="lazy"><img src="/hobbies/mun-smile.jpg" alt="On the podium" loading="lazy"><img src="/hobbies/mun-notes.jpg" alt="Taking notes at the podium" loading="lazy"></div><span class="hbdots" aria-hidden="true"><i></i><i></i><i></i><i></i></span><div class="hbtxt"><span class="hbtag">MUN</span><h3>Diplomacy as a contact sport.</h3><p>50+ MUNs. Chaired almost 85% of every format there is.</p></div></article>
+      <article class="hbt" data-hb><div class="hbimgs"><img src="/hobbies/basketball.jpg" alt="Jump ball at a basketball game" loading="lazy"></div><div class="hbtxt"><span class="hbtag">Basketball</span><h3>Die-hard Harden fan.</h3><p>Played through 12th grade. Belted a lotta 6&#39;5&quot; players with my three. The prime is gone.</p></div></article>
+      <article class="hbt hbmc" data-hb><div class="hbimgs"><img src="/hobbies/mc-temple.jpg" alt="Minecraft night temple build" loading="lazy"><img src="/hobbies/mc-arena.jpg" alt="Minecraft arena build" loading="lazy"><img src="/hobbies/mc-street.jpg" alt="Minecraft city street at night" loading="lazy"><img src="/hobbies/mc-house.jpg" alt="Minecraft house build" loading="lazy"><img src="/hobbies/mc-nether.jpg" alt="Minecraft nether lava build" loading="lazy"><img src="/hobbies/mc-hall.jpg" alt="Minecraft interior build" loading="lazy"></div><span class="hbdots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><div class="hbtxt"><span class="hbtag">Minecraft</span><h3>OG Minecraft player.</h3><p>The one thing nobody is getting any closer to me at.</p></div></article>
+    </div>
+    <h3 class="hbsub rv">MUN, in detail</h3>
     <div class="ld">
       <div class="rv">
         <div class="roles">
@@ -1162,6 +1189,7 @@ if (location.hash) { const t = document.getElementById(location.hash.slice(1)); 
 <script src="/mgr.js" defer></script>
 <script src="/games.js" defer></script>
 <script src="/nav-menu.js" defer></script>
+<script src="/hobbies.js" defer></script>
 <script>/* API card: type the command, then show the reply, each time the card comes into view */
 (function(){
   var box=document.getElementById('apicode');
