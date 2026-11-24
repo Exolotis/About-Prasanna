@@ -663,6 +663,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 /* battle backdrop painted from the town tiles */
 .grscene{background-size:cover!important;background-position:center bottom!important;image-rendering:pixelated}
 .grscene::before{display:none}
+
+/* desktop: Leaderboard and help sit in the empty slot at the end of the game cards, not on their own row */
+@media(min-width:721px){.gbar{position:relative}.gbar>#glbb,.gbar>#ghb{position:absolute;bottom:calc((var(--gcard,62px) - 42px) / 2)}.gbar>#ghb{right:0}.gbar>#glbb{right:56px}}
 </style>
 </head>
 <body>
