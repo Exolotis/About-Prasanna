@@ -62,7 +62,7 @@ a{color:#0a84ff}
   </section>
 
   <div id="app" hidden>
-    <div class="tabs"><button class="on" data-tab="now">Right now</button><button data-tab="blog">Blog</button><button data-tab="gallery">Gallery</button><button data-tab="songs">Songs</button></div>
+    <div class="tabs"><button class="on" data-tab="now">Right now</button><button data-tab="blog">Blog</button><button data-tab="gallery">Gallery</button><button data-tab="songs">Picks</button></div>
 
     <!-- RIGHT NOW -->
     <form id="tab-now">
@@ -119,7 +119,7 @@ a{color:#0a84ff}
         <div><label for="np2">Type it again</label><input id="np2" type="password" autocomplete="new-password" minlength="10"></div></div>
       <div class="bar"><button class="ghost" id="setpass">Set password</button><span class="msg" id="m6"></span></div></section>
     <!-- SONGS -->
-    <div id="tab-songs" hidden><section class="card"><h2>Visitor picks</h2><p class="hint" style="margin:0 0 12px">Songs visitors suggested. They show publicly on the site; delete any you do not want there.</p><div class="list" id="songs"></div></section></div>
+    <div id="tab-songs" hidden><section class="card"><h2>Visitor picks</h2><p class="hint" style="margin:0 0 12px">Songs visitors suggested. They show publicly on the site; delete any you do not want there.</p><div class="list" id="songs"></div></section><section class="card"><h2>Book picks</h2><div class="list" id="books"></div></section></div>
 
     <div class="bar"><button class="ghost" id="out">Sign out</button></div>
   </div>
@@ -181,7 +181,7 @@ a{color:#0a84ff}
   function start() {
     db.rpc('now_can_edit').then(function (r) {
       if (!r.data) { say($('m2'), 'This account is not allowed to edit.', 'bad'); db.auth.signOut(); return; }
-      $('signin').hidden = true; $('app').hidden = false; loadNow(); loadPosts(); loadPhotos(); loadSongs();
+      $('signin').hidden = true; $('app').hidden = false; loadNow(); loadPosts(); loadPhotos(); loadSongs(); loadBooks();
     });
   }
 
@@ -301,6 +301,22 @@ a{color:#0a84ff}
       $('songs').querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () {
         if (!confirm('Remove this suggestion from the site?')) return;
         db.from('song_suggestions').delete().eq('id', b.dataset.del).then(function (d) { if (!d.error) b.closest('.item').remove(); });
+      }; });
+    });
+  }
+
+  function loadBooks() {
+    db.from('book_suggestions').select('id,work_key,title,author,cover_id,suggested_by,created_at').order('created_at', { ascending: false }).limit(200).then(function (r) {
+      if (r.error) { $('books').innerHTML = '<p class="hint">Run tools/books.sql in Supabase to turn this on.</p>'; return; }
+      var rows = r.data || [];
+      $('books').innerHTML = rows.length ? rows.map(function (x) {
+        return '<div class="item">' + (x.cover_id ? '<img src="https://covers.openlibrary.org/b/id/' + (x.cover_id | 0) + '-S.jpg" alt="" style="width:30px;height:44px;border-radius:4px;object-fit:cover">' : '') +
+          '<b>' + esc(x.title) + ' <small>· ' + esc(x.author) + '</small></b><small>by ' + esc(x.suggested_by || 'a visitor') + ' · ' + new Date(x.created_at).toLocaleDateString() + '</small>' +
+          '<a href="https://openlibrary.org' + esc(x.work_key) + '" target="_blank" rel="noopener">View</a><button class="danger sm" data-delb="' + x.id + '">Delete</button></div>';
+      }).join('') : '<p class="hint">No book suggestions yet.</p>';
+      $('books').querySelectorAll('[data-delb]').forEach(function (b) { b.onclick = function () {
+        if (!confirm('Remove this book suggestion from the site?')) return;
+        db.from('book_suggestions').delete().eq('id', b.dataset.delb).then(function (d) { if (!d.error) b.closest('.item').remove(); });
       }; });
     });
   }

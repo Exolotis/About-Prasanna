@@ -205,73 +205,100 @@
   }
 
 
-  /* ---------- Visitor picks: anyone can suggest a song (real Spotify cover), shown publicly ---------- */
+  /* ---------- Visitor picks: anyone can suggest a song (real Spotify cover) or a book (real Open Library cover), shown publicly ---------- */
   const picks = $('.nwpicks');
   if (picks) {
-    const strip = picks.querySelector('.nwpstrip');
-    const tile = p => '<a class="nwptile" href="https://open.spotify.com/track/' + esc(p.track_id) + '" target="_blank" rel="noopener">' +
-      (/^https:\/\/i\.scdn\.co\//.test(p.image) ? '<img src="' + esc(p.image) + '" alt="" loading="lazy">' : '<span class="nwart0"></span>') +
-      '<b>' + esc(p.title) + '</b><small>' + esc(p.artist) + '</small><em>' + (p.suggested_by ? 'by ' + esc(p.suggested_by) : 'by a visitor') + '</em></a>';
-    const loadPicks = async () => {
-      try {
-        const r = await fetch(SB + '/song_suggestions?select=track_id,title,artist,image,suggested_by,created_at&order=created_at.desc&limit=16', { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } });
-        if (!r.ok) throw 0;                                            // table not set up yet: hide the strip
-        const rows = await r.json();
-        strip.innerHTML = rows.length ? rows.map(tile).join('') : '<p class="nwpempty">No picks yet. Be the first to suggest a song.</p>';
-        picks.hidden = false; layout();
-      } catch (e) { picks.hidden = true; }
+    const strip = picks.querySelector('.nwpstrip'), addBtn = picks.querySelector('.nwpadd');
+    const H = { apikey: KEY, Authorization: 'Bearer ' + KEY };
+    const okSpotifyImg = u => /^https:\/\/i\.scdn\.co\/image\//.test(u || '');
+    const bookCover = id => id ? 'https://covers.openlibrary.org/b/id/' + (id | 0) + '-M.jpg' : '';
+    const by = p => '<em>' + (p.suggested_by ? 'by ' + esc(p.suggested_by) : 'by a visitor') + '</em>';
+    // everything that differs between songs and books
+    const KINDS = {
+      song: {
+        table: 'song_suggestions', select: 'track_id,title,artist,image,suggested_by,created_at', noun: 'song', icon: SPOTIFY, ask: 'What should I listen to?', place: 'Song or artist', where: 'Search Spotify',
+        tile: p => '<a class="nwptile" href="https://open.spotify.com/track/' + esc(p.track_id) + '" target="_blank" rel="noopener">' + (okSpotifyImg(p.image) ? '<img src="' + esc(p.image) + '" alt="" loading="lazy">' : '<span class="nwart0"></span>') + '<b>' + esc(p.title) + '</b><small>' + esc(p.artist) + '</small>' + by(p) + '</a>',
+        search: async q => { const r = await fetch('/api/song-search?q=' + encodeURIComponent(q)); const l = await r.json(); return (Array.isArray(l) ? l : []).map(t => ({ img: okSpotifyImg(t.image) ? t.image : '', title: t.title, sub: t.artist, row: { track_id: t.id, title: t.title.slice(0, 200), artist: t.artist.slice(0, 200), image: okSpotifyImg(t.image) ? t.image : '' } })); }
+      },
+      book: {
+        table: 'book_suggestions', select: 'work_key,title,author,cover_id,suggested_by,created_at', noun: 'book', icon: '<span aria-hidden="true">📚</span>', ask: 'What should I read next?', place: 'Book title or author', where: 'Search books',
+        tile: p => '<a class="nwptile nwbooktile" href="https://openlibrary.org' + esc(p.work_key) + '" target="_blank" rel="noopener">' + (p.cover_id ? '<img src="' + esc(bookCover(p.cover_id)) + '" alt="" loading="lazy">' : '<span class="nwart0">📖</span>') + '<b>' + esc(p.title) + '</b><small>' + esc(p.author) + '</small>' + by(p) + '</a>',
+        search: async q => {
+          const r = await fetch('https://openlibrary.org/search.json?limit=6&fields=key,title,author_name,cover_i&q=' + encodeURIComponent(q));
+          const docs = (await r.json()).docs || [];
+          return docs.filter(d => /^\/works\/OL\d+W$/.test(d.key)).map(d => { const author = (d.author_name || []).slice(0, 2).join(', ');
+            return { img: bookCover(d.cover_i), title: d.title, sub: author, row: { work_key: d.key, title: String(d.title).slice(0, 200), author: author.slice(0, 200), cover_id: d.cover_i || null } }; });
+        }
+      }
     };
+    let kind = 'song';
+    const loadPicks = async () => {
+      const K = KINDS[kind];
+      try {
+        const r = await fetch(SB + '/' + K.table + '?select=' + K.select + '&order=created_at.desc&limit=16', { headers: H });
+        if (!r.ok) throw 0;
+        const rows = await r.json();
+        strip.innerHTML = rows.length ? rows.map(K.tile).join('') : '<p class="nwpempty">No ' + K.noun + ' picks yet. Be the first to suggest one.</p>';
+      } catch (e) { strip.innerHTML = '<p class="nwpempty">' + (kind === 'book' ? 'Book picks open soon.' : 'Picks open soon.') + '</p>'; }
+      picks.hidden = false; layout();
+    };
+    const setKind = k => {
+      kind = k; addBtn.textContent = '+ Suggest a ' + KINDS[k].noun;
+      picks.querySelectorAll('.nwpkind button').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+      loadPicks();
+    };
+    picks.querySelectorAll('.nwpkind button').forEach(b => b.onclick = () => setKind(b.dataset.k));
 
-    // the suggest window: search Spotify, pick a song, add your name, send
+    // the suggest window: search, pick one, add your name, send
     const sg = document.createElement('div'); sg.className = 'nwwl nwsg'; sg.hidden = true;
-    sg.setAttribute('role', 'dialog'); sg.setAttribute('aria-modal', 'true'); sg.setAttribute('aria-label', 'Suggest a song');
+    sg.setAttribute('role', 'dialog'); sg.setAttribute('aria-modal', 'true'); sg.setAttribute('aria-label', 'Suggest');
     document.body.appendChild(sg);
     const closeSg = () => { sg.hidden = true; document.documentElement.classList.remove('grlock'); };
-    const openSg = () => {
-      let chosen = null, timer = null, asked = 0;
+    const openSg = k => {
+      const K = KINDS[k]; let chosen = null, timer = null, asked = 0;
       sg.innerHTML = '<form class="nwwlbox" novalidate><button type="button" class="nwwlx" aria-label="Close">×</button>' +
-        '<span class="nwwltag nwsgtag">' + SPOTIFY + 'Suggest a song</span><h3>What should I listen to?</h3>' +
-        '<label for="nwsg-q">Search Spotify</label><input id="nwsg-q" maxlength="80" autocomplete="off" placeholder="Song or artist">' +
+        '<span class="nwwltag nwsgtag' + (k === 'book' ? ' book' : '') + '">' + K.icon + 'Suggest a ' + K.noun + '</span><h3>' + K.ask + '</h3>' +
+        '<label for="nwsg-q">' + K.where + '</label><input id="nwsg-q" maxlength="80" autocomplete="off" placeholder="' + K.place + '">' +
         '<div class="nwsgres" role="listbox" aria-label="Results"></div>' +
         '<label for="nwsg-by">Your name <span style="font-weight:500;color:var(--mute)">(optional)</span></label><input id="nwsg-by" maxlength="40" autocomplete="given-name">' +
         '<input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">' +
-        '<button type="submit" class="nwwlgo" disabled>Pick a song first</button><p class="nwwlmsg" aria-live="polite"></p></form>';
+        '<button type="submit" class="nwwlgo" disabled>Pick a ' + K.noun + ' first</button><p class="nwwlmsg" aria-live="polite"></p></form>';
       const form = sg.querySelector('form'), q = sg.querySelector('#nwsg-q'), res = sg.querySelector('.nwsgres'), go = form.querySelector('.nwwlgo'), msg = form.querySelector('.nwwlmsg');
       form.querySelector('.nwwlx').onclick = closeSg;
       const showResults = list => {
-        res.innerHTML = list.length ? list.map((t, i) => '<button type="button" class="nwsgopt" role="option" data-i="' + i + '">' +
-          (/^https:\/\/i\.scdn\.co\//.test(t.image) ? '<img src="' + esc(t.image) + '" alt="">' : '<span class="nwart0"></span>') +
-          '<span><b>' + esc(t.title) + '</b><small>' + esc(t.artist) + '</small></span></button>').join('') : '<p class="nwpempty">No songs found.</p>';
+        res.innerHTML = list.length ? list.map((t, i) => '<button type="button" class="nwsgopt' + (k === 'book' ? ' book' : '') + '" role="option" data-i="' + i + '">' +
+          (t.img ? '<img src="' + esc(t.img) + '" alt="">' : '<span class="nwart0"></span>') + '<span><b>' + esc(t.title) + '</b><small>' + esc(t.sub) + '</small></span></button>').join('') : '<p class="nwpempty">Nothing found.</p>';
         res.querySelectorAll('.nwsgopt').forEach(b => b.onclick = () => {
           chosen = list[+b.dataset.i]; res.querySelectorAll('.nwsgopt').forEach(x => x.classList.toggle('on', x === b));
-          go.disabled = false; go.textContent = 'Suggest this song';
+          go.disabled = false; go.textContent = 'Suggest this ' + K.noun;
         });
       };
       q.oninput = () => {
-        clearTimeout(timer); chosen = null; go.disabled = true; go.textContent = 'Pick a song first';
+        clearTimeout(timer); chosen = null; go.disabled = true; go.textContent = 'Pick a ' + K.noun + ' first';
         const words = q.value.trim(); if (words.length < 2) { res.innerHTML = ''; return; }
         timer = setTimeout(async () => {
           const mine = ++asked; res.innerHTML = '<p class="nwpempty">Searching…</p>';
-          try { const r = await fetch('/api/song-search?q=' + encodeURIComponent(words)); const list = await r.json(); if (mine === asked) showResults(Array.isArray(list) ? list : []); }
+          try { const list = await K.search(words); if (mine === asked) showResults(list); }
           catch (e) { if (mine === asked) res.innerHTML = '<p class="nwpempty">Search is resting. Try again soon.</p>'; }
         }, 320);
       };
       form.onsubmit = async e => {
-        e.preventDefault(); if (!chosen) return; if (form.website.value) return closeSg();   // bots fill the hidden box
+        e.preventDefault(); if (!chosen) return; if (form.website.value) return closeSg();     // bots fill the hidden box
         go.disabled = true; go.textContent = 'Sending…'; msg.textContent = '';
-        const by = sg.querySelector('#nwsg-by').value.trim().slice(0, 40);
+        const name = sg.querySelector('#nwsg-by').value.trim().slice(0, 40);
         try {
-          const r = await fetch(SB + '/song_suggestions', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-            body: JSON.stringify({ track_id: chosen.id, title: chosen.title.slice(0, 200), artist: chosen.artist.slice(0, 200), image: /^https:\/\/i\.scdn\.co\/image\//.test(chosen.image) ? chosen.image : '', suggested_by: by }) });
+          const r = await fetch(SB + '/' + K.table, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }, H), body: JSON.stringify(Object.assign({}, chosen.row, { suggested_by: name })) });
           if (!r.ok) throw 0;
-          form.innerHTML = '<button type="button" class="nwwlx" aria-label="Close">×</button><span class="nwwltag nwsgtag">' + SPOTIFY + 'Added to Visitor picks</span><h3>Thanks' + (by ? ', ' + esc(by) : '') + '!</h3><p>' + esc(chosen.title) + ' is on the list. I will give it a listen.</p>';
-          form.querySelector('.nwwlx').onclick = closeSg; loadPicks();
-        } catch (e2) { go.disabled = false; go.textContent = 'Suggest this song'; msg.textContent = 'Could not send right now. Try again in a minute.'; }
+          form.innerHTML = '<button type="button" class="nwwlx" aria-label="Close">×</button><span class="nwwltag nwsgtag' + (k === 'book' ? ' book' : '') + '">' + K.icon + 'Added to Visitor picks</span><h3>Thanks' + (name ? ', ' + esc(name) : '') + '!</h3><p>' + esc(chosen.title) + ' is on the list. I will check it out.</p>';
+          form.querySelector('.nwwlx').onclick = closeSg; setKind(k);
+        } catch (e2) { go.disabled = false; go.textContent = 'Suggest this ' + K.noun; msg.textContent = 'Could not send right now. Try again in a minute.'; }
       };
       sg.hidden = false; document.documentElement.classList.add('grlock'); q.focus();
     };
-    picks.querySelector('.nwpadd').onclick = openSg;
-    suggestOpen = openSg; const sb = music.querySelector('.nwsgbtn'); if (sb) { sb.hidden = false; sb.onclick = openSg; }
+    addBtn.onclick = () => openSg(kind);
+    suggestOpen = () => openSg('song');
+    const sb = music.querySelector('.nwsgbtn'); if (sb) { sb.hidden = false; sb.onclick = suggestOpen; }
+    const rb = $('.nwread .nwbkbtn'); if (rb) rb.onclick = () => openSg('book');
     sg.addEventListener('click', e => { if (e.target === sg) closeSg(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sg.hidden) closeSg(); });
     loadPicks();

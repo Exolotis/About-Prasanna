@@ -17,7 +17,7 @@
         '<a class="wrcard" href="/blog/' + encodeURIComponent(p.slug) + '">' +
         (ours(p.cover_url) ? '<span class="wrcover"><img src="' + esc(p.cover_url) + '" alt="" loading="lazy"></span>' : '') +
         '<span class="wrbody"><small>' + esc(date(p.published_at)) + '</small><b>' + esc(p.title) + '</b>' + (p.summary ? '<span class="wrsum">' + esc(p.summary) + '</span>' : '') +
-        '<span class="wrtags">' + tagsOf(p.tags).slice(0, 3).map(t => '<i>' + esc(t) + '</i>').join('') + '</span><em>Read →</em></span></a>').join('');
+        '<span class="wrtags">' + tagsOf(p.tags).slice(0, 3).map(t => '<i>' + esc(t) + '</i>').join('') + '</span><em>Read</em></span></a>').join('');
       writing.hidden = false;
     }).catch(() => {});
 
