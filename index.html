@@ -675,6 +675,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .navsheet a{display:flex;align-items:center;height:46px;padding:0 16px;border-radius:14px;background:rgba(255,255,255,.05);color:#f5f5f7;font:600 15px var(--f);text-decoration:none}
 .navsheet a:active{background:rgba(255,255,255,.14)}
 @media(max-width:720px){.navmenu{display:inline-flex}}
+
+/* phone top bar: icon-only menu, tighter spacing so nothing is crammed */
+@media(max-width:720px){.navmenu{width:34px;height:34px;padding:0;justify-content:center;border-radius:50%}.navmenu span{display:none}.navmenu svg{width:16px;height:16px}.nav{gap:2px;padding:5px}.nav .me{padding:3px 10px 3px 3px}.nav .cta{padding:7px 13px}}
 </style>
 </head>
 <body>

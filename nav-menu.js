@@ -9,8 +9,8 @@
   });
 
   const btn = document.createElement('button');
-  btn.type = 'button'; btn.className = 'navmenu'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'navsheet');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"/></svg>Menu';
+  btn.type = 'button'; btn.className = 'navmenu'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Menu'); btn.setAttribute('aria-controls', 'navsheet');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14"/></svg><span>Menu</span>';
   const cta = nav.querySelector('.cta'); nav.insertBefore(btn, cta || null);
 
   const sheet = document.createElement('div'); sheet.id = 'navsheet'; sheet.className = 'navsheet'; sheet.hidden = true;
