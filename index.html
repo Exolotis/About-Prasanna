@@ -728,6 +728,22 @@ footer.pf .wrap{position:relative;z-index:2}
 
 /* MUN details: kept in the page code, not shown */
 #lead .hbsub,#lead .ld{display:none!important}
+
+/* listen along: play buttons + a slim Spotify player docked at the bottom */
+.nwtri{display:inline-block;width:0;height:0;border-style:solid;border-width:6px 0 6px 10px;border-color:transparent transparent transparent currentColor}
+.nwlplay{display:inline-flex;align-items:center;gap:8px;height:34px;margin-top:14px;padding:0 15px;border:0;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.14);color:#f5f5f7;font:600 13px var(--f);cursor:pointer;position:relative;z-index:1}
+.nwlplay:hover{background:rgba(255,255,255,.16)}
+.nwpcov{position:relative;display:block}
+.nwpplay{position:absolute;right:8px;bottom:8px;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(245,245,247,.92);color:#000;cursor:pointer;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.nwpplay .nwtri{margin-left:3px}
+.nwptile:hover .nwpplay,.nwpplay:focus-visible{opacity:1;transform:none}
+@media(hover:none){.nwpplay{opacity:1;transform:none}}
+.nwptile a{display:block;color:inherit;text-decoration:none}.nwptile a:hover b{text-decoration:underline}
+.nwlisten{position:fixed;left:50%;bottom:16px;z-index:9000;width:min(460px,calc(100% - 24px));transform:translateX(-50%);padding:8px 8px 8px 8px;border-radius:20px;background:rgba(18,18,20,.82);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 20px 60px rgba(0,0,0,.6)}
+.nwlisten[hidden]{display:none}
+.nwlbox{border-radius:12px;overflow:hidden;min-height:80px}.nwlbox iframe{display:block;border:0}
+.nwlx{position:absolute;top:-10px;right:-10px;width:28px;height:28px;border:0;border-radius:50%;background:#f5f5f7;color:#000;font-size:17px;line-height:1;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+@media(max-width:720px){.nwlisten{bottom:78px}}
 </style>
 </head>
 <body>

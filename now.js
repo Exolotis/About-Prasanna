@@ -126,8 +126,49 @@
     if (previewWatch) previewWatch.disconnect();
     btn.onclick = null; btn.classList.add('playing');
     thumb.className = 'nwthumb playing';
-    thumb.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&cc_load_policy=0" allow="autoplay; encrypted-media; picture-in-picture" title="Video"></iframe>';
+    thumb.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&cc_load_policy=0&enablejsapi=1" allow="autoplay; encrypted-media; picture-in-picture" title="Video"></iframe>';
+    stopSong();                                                        // only one thing makes sound at a time
   };
+  // pause the video if it is playing with sound (the silent preview is left alone)
+  const stopVideo = () => {
+    const f = root.querySelector('.nwthumb.playing iframe');
+    if (f && f.contentWindow) f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+  };
+
+  /* ---------- listen along: visitors play the same song in their own browser (Spotify's embed player) ----------
+     It never touches Prasanna's Spotify. Logged-out visitors hear a 30-second preview; logged-in ones the full song. */
+  let spotifyApi = null, controller = null, bar = null, waitingFor = null;
+  const stopSong = () => { if (controller) { try { controller.pause(); } catch (e) {} } };
+  const trackId = url => (String(url || '').match(/open\.spotify\.com\/track\/([A-Za-z0-9]{22})/) || [])[1] || '';
+  const playSong = id => {
+    if (!/^[A-Za-z0-9]{22}$/.test(id)) return;
+    stopVideo();
+    if (!bar) {
+      bar = document.createElement('div'); bar.className = 'nwlisten'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Listen along');
+      bar.innerHTML = '<div class="nwlbox"></div><button type="button" class="nwlx" aria-label="Close player">×</button>';
+      document.body.appendChild(bar);
+      bar.querySelector('.nwlx').onclick = () => { stopSong(); bar.hidden = true; };
+    }
+    bar.hidden = false;
+    const uri = 'spotify:track:' + id;
+    if (controller) { controller.loadUri(uri); controller.play(); return; }
+    waitingFor = uri;
+    if (spotifyApi) return makeController();
+    if (!document.getElementById('spotify-iframe-api')) {
+      window.onSpotifyIframeApiReady = api => { spotifyApi = api; makeController(); };
+      const s = document.createElement('script'); s.id = 'spotify-iframe-api'; s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true; document.head.appendChild(s);
+    }
+  };
+  const makeController = () => {
+    const holder = document.createElement('div'); bar.querySelector('.nwlbox').appendChild(holder);
+    spotifyApi.createController(holder, { uri: waitingFor, width: '100%', height: 80 }, c => {
+      controller = c;
+      c.addListener('playback_update', e => { if (e && e.data && !e.data.isPaused) stopVideo(); });   // song started: silence the video
+      c.addListener('ready', () => c.play());
+    });
+  };
+  // any play button with a track on it (your song, or a visitor pick)
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-track]'); if (b) { e.preventDefault(); playSong(b.dataset.track); } });
 
   // bottom row: as many columns as there are cards showing
   // the Building card is twice as wide as the others, so it counts as two columns
@@ -155,6 +196,7 @@
       '<div class="nwhead">' + SPOTIFY + (s.playing ? 'Now playing' : 'Last played') + (!s.playing && s.played_at ? ' <em>· ' + ago(s.played_at) + '</em>' : '') + '<button type="button" class="nwsgbtn">+ Suggest a song</button></div>' +
       '<a class="nwsong" href="' + esc(link) + '" target="_blank" rel="noopener">' + art + '<span class="nwtxt"><b>' + esc(s.title) + '</b><small>' + esc(s.artist) + '</small></span>' +
       (s.playing ? '<span class="nweq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>' : '') + '</a>' +
+      (trackId(s.url) ? '<button type="button" class="nwlplay" data-track="' + trackId(s.url) + '"><span class="nwtri" aria-hidden="true"></span>Listen along</button>' : '') +
       (s.playing ? '<div class="nwbar"><i></i></div><div class="nwnums"></div>' : '');
     const sb = music.querySelector('.nwsgbtn'); if (sb) { sb.hidden = !suggestOpen; sb.onclick = () => suggestOpen && suggestOpen(); }
     drawProgress();
@@ -217,7 +259,9 @@
     const KINDS = {
       song: {
         table: 'song_suggestions', select: 'track_id,title,artist,image,suggested_by,created_at', noun: 'song', icon: SPOTIFY, ask: 'What should I listen to?', place: 'Song or artist', where: 'Search Spotify',
-        tile: p => '<a class="nwptile" href="https://open.spotify.com/track/' + esc(p.track_id) + '" target="_blank" rel="noopener">' + (okSpotifyImg(p.image) ? '<img src="' + esc(p.image) + '" alt="" loading="lazy">' : '<span class="nwart0"></span>') + '<b>' + esc(p.title) + '</b><small>' + esc(p.artist) + '</small>' + by(p) + '</a>',
+        tile: p => '<div class="nwptile"><span class="nwpcov">' + (okSpotifyImg(p.image) ? '<img src="' + esc(p.image) + '" alt="" loading="lazy">' : '<span class="nwart0"></span>') +
+          '<button type="button" class="nwpplay" data-track="' + esc(p.track_id) + '" aria-label="Play ' + esc(p.title) + '"><span class="nwtri" aria-hidden="true"></span></button></span>' +
+          '<a href="https://open.spotify.com/track/' + esc(p.track_id) + '" target="_blank" rel="noopener"><b>' + esc(p.title) + '</b><small>' + esc(p.artist) + '</small></a>' + by(p) + '</div>',
         search: async q => { const r = await fetch('/api/song-search?q=' + encodeURIComponent(q)); const l = await r.json(); return (Array.isArray(l) ? l : []).map(t => ({ img: okSpotifyImg(t.image) ? t.image : '', title: t.title, sub: t.artist, row: { track_id: t.id, title: t.title.slice(0, 200), artist: t.artist.slice(0, 200), image: okSpotifyImg(t.image) ? t.image : '' } })); }
       },
       book: {
