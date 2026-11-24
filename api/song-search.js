@@ -16,8 +16,19 @@ const appToken = async () => {
   return token;
 };
 
+// Speed limit: each visitor gets 20 searches a minute, so bots can't burn the Spotify keys.
+const hits = new Map();
+const tooMany = ip => {
+  const now = Date.now(), list = (hits.get(ip) || []).filter(t => now - t < 60000);
+  list.push(now); hits.set(ip, list);
+  if (hits.size > 5000) hits.clear();
+  return list.length > 20;
+};
+
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
+  if (tooMany(ip)) { res.statusCode = 429; res.end('[]'); return; }
   const q = (new URL(req.url, 'http://x').searchParams.get('q') || '').trim().slice(0, 80);
   if (q.length < 2) { res.end('[]'); return; }
   try {
