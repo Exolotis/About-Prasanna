@@ -77,7 +77,7 @@
     if (c.reading_title) {
       $('.nwread .nwbook b').textContent = c.reading_title; $('.nwread .nwbook small').textContent = c.reading_author ? 'by ' + c.reading_author : '';
       const img = await cover(c.reading_title, c.reading_author);
-      $('.nwread .nwcover').innerHTML = img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '<span>📖</span>';
+      $('.nwread .nwcover').innerHTML = img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '<span></span>';
     }
     show('.nwread', !!c.reading_title);
     $('.nwweek p').textContent = c.this_week; show('.nwweek', !!c.this_week);
@@ -221,8 +221,8 @@
         search: async q => { const r = await fetch('/api/song-search?q=' + encodeURIComponent(q)); const l = await r.json(); return (Array.isArray(l) ? l : []).map(t => ({ img: okSpotifyImg(t.image) ? t.image : '', title: t.title, sub: t.artist, row: { track_id: t.id, title: t.title.slice(0, 200), artist: t.artist.slice(0, 200), image: okSpotifyImg(t.image) ? t.image : '' } })); }
       },
       book: {
-        table: 'book_suggestions', select: 'work_key,title,author,cover_id,suggested_by,created_at', noun: 'book', icon: '<span aria-hidden="true">📚</span>', ask: 'What should I read next?', place: 'Book title or author', where: 'Search books',
-        tile: p => '<a class="nwptile nwbooktile" href="https://openlibrary.org' + esc(p.work_key) + '" target="_blank" rel="noopener">' + (p.cover_id ? '<img src="' + esc(bookCover(p.cover_id)) + '" alt="" loading="lazy">' : '<span class="nwart0">📖</span>') + '<b>' + esc(p.title) + '</b><small>' + esc(p.author) + '</small>' + by(p) + '</a>',
+        table: 'book_suggestions', select: 'work_key,title,author,cover_id,suggested_by,created_at', noun: 'book', icon: '<svg class="nwic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/></svg>', ask: 'What should I read next?', place: 'Book title or author', where: 'Search books',
+        tile: p => '<a class="nwptile nwbooktile" href="https://openlibrary.org' + esc(p.work_key) + '" target="_blank" rel="noopener">' + (p.cover_id ? '<img src="' + esc(bookCover(p.cover_id)) + '" alt="" loading="lazy">' : '<span class="nwart0"></span>') + '<b>' + esc(p.title) + '</b><small>' + esc(p.author) + '</small>' + by(p) + '</a>',
         search: async q => {
           const r = await fetch('https://openlibrary.org/search.json?limit=6&fields=key,title,author_name,cover_i&q=' + encodeURIComponent(q));
           const docs = (await r.json()).docs || [];
