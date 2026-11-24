@@ -236,6 +236,8 @@ a{color:#0a84ff}
   /* ---------- Blog ---------- */
   var editing = null, cover = '';
   var slugify = function (t) { return t.toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').replace(/-+/g, '-').slice(0, 80); };
+  // the address the database accepts: lowercase letters/numbers joined by single dashes, 3 to 80 long, no dash at either end
+  var cleanSlug = function (t) { var s = slugify(t).replace(/^-+|-+$/g, ''); return s.length >= 3 ? s : ''; };
   function loadPosts() {
     db.from('blog_posts').select('id,slug,title,published,published_at,updated_at').order('updated_at', { ascending: false }).then(function (r) {
       var rows = r.data || [];
@@ -274,7 +276,10 @@ a{color:#0a84ff}
   $('prevbtn').onclick = function () { var p = $('preview'); p.hidden = !p.hidden; if (!p.hidden) p.innerHTML = window.renderMarkdown($('p_body').value) || '<p class="hint">Nothing written yet.</p>'; };
   $('editor').onsubmit = function (e) {
     e.preventDefault(); $('postsave').disabled = true; say($('m4'), 'Saving…');
-    var row = { title: $('p_title').value.trim(), slug: $('p_slug').value.trim(), summary: $('p_summary').value.trim(), tags: $('p_tags').value.trim(), body: $('p_body').value, cover_url: cover, published: $('p_pub').checked };
+    // tidy the web address; if the title has no usable letters (or it is too short), make one from the date
+    var slug = cleanSlug($('p_slug').value) || cleanSlug($('p_title').value) || ('post-' + new Date().toISOString().slice(0, 10) + '-' + Math.random().toString(36).slice(2, 6));
+    $('p_slug').value = slug; $('slugshow').textContent = slug;
+    var row = { title: $('p_title').value.trim(), slug: slug, summary: $('p_summary').value.trim(), tags: $('p_tags').value.trim(), body: $('p_body').value, cover_url: cover, published: $('p_pub').checked };
     var q = editing ? db.from('blog_posts').update(row).eq('id', editing) : db.from('blog_posts').insert(row);
     q.select().then(function (r) {
       $('postsave').disabled = false;
