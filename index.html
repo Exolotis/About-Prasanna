@@ -525,7 +525,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .grab{display:flex;flex-direction:column;align-items:center;gap:6px}.grab small{color:var(--mute);font:600 11px var(--f)}
 .gra{width:72px;height:72px;border:0;border-radius:50%;background:#f5f5f7;color:#000;font:700 22px var(--f);box-shadow:0 8px 24px rgba(0,0,0,.45);touch-action:none;-webkit-tap-highlight-color:transparent}
 .gra:active{transform:scale(.95)}
-@media(hover:none) and (pointer:coarse){.grpad{display:flex}.grkeys{display:none}.grov{padding:10px}.grwin{padding:10px}}
+@media(pointer:coarse),(any-pointer:coarse),(max-width:720px){.grpad{display:flex}.grkeys{display:none}.grov{padding:10px}.grwin{padding:10px}}
+.grov{overflow-y:auto;overscroll-behavior:contain}@media(max-height:700px){.grdpad{grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px)}.gra{width:60px;height:60px}.grpad{margin-top:8px;padding:8px 12px}}
 
 /* phone polish for Right now */
 @media(max-width:900px){
