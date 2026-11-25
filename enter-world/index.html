@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<base href="/enter-world/">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Enter the world · Prasanna Bhatkar</title>
+<meta name="description" content="Drive around a small island. Each stop is a chapter of Prasanna Bhatkar's story: Dodo Payments, Climeta, research, Moluscca, MUN.">
+<link rel="canonical" href="https://www.prasanna.lol/enter-world">
+<link rel="icon" href="/moluscca-shell.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--f:'Albert Sans',-apple-system,BlinkMacSystemFont,sans-serif;--glass:rgba(17,17,19,.82);--line:rgba(255,255,255,.12);--mute:#a1a1a6}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#0b0d10;color:#f5f5f7;font:500 15px/1.5 var(--f);-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.glass{background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px var(--line);border-radius:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:0;border-radius:999px;font:600 14px var(--f);cursor:pointer;color:#000;background:#f5f5f7;text-decoration:none;white-space:nowrap}
+.btn.o{color:#f5f5f7;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.btn:hover{filter:brightness(.92)}
+kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;background:rgba(255,255,255,.12);font:700 11px var(--f);color:#fff}
+/* top bar */
+#hud{position:fixed;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;pointer-events:none;z-index:5}
+#hud>*{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 8px;color:#fff;text-decoration:none;font:700 14px var(--f)}
+.brand img{width:24px;height:24px}
+.tools{display:flex;gap:8px}
+#speed{position:fixed;left:14px;bottom:14px;padding:10px 16px;z-index:5;font:700 13px var(--f);color:var(--mute)}
+#speed b{font:800 26px var(--f);color:#fff;margin-right:4px}
+#map{position:fixed;right:14px;bottom:14px;width:150px;height:150px;z-index:5;padding:0;border-radius:50%;overflow:hidden}
+#map canvas{width:100%;height:100%}
+#prompt{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);padding:14px 16px;display:flex;flex-direction:column;gap:10px;z-index:6;width:min(420px,calc(100% - 32px));opacity:0;pointer-events:none;transition:.25s}
+#prompt.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#prompt b{font:800 18px var(--f)}#prompt small{display:block;color:var(--mute);font:500 13px var(--f)}
+#plinks{display:flex;flex-wrap:wrap;gap:8px}#plinks .btn{height:36px;padding:0 14px;font-size:13px}
+/* panels */
+.over{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;z-index:10;background:rgba(0,0,0,.35)}
+.over.on{display:flex}
+.panel{width:min(620px,100%);max-height:min(86vh,760px);overflow:auto;padding:26px 26px 22px;position:relative;touch-action:pan-y}
+.panel h2{font:800 28px/1.15 var(--f);letter-spacing:-.01em;margin:6px 0 10px}
+.panel .k{font:700 11px var(--f);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.panel p{color:#d2d2d7;margin:8px 0}
+.panel ul{margin:10px 0 4px 18px;color:#d2d2d7}.panel li{margin:6px 0}
+.panel li b,.panel p b{color:#fff}
+.panel .logo{height:30px;width:auto;display:block;margin:4px 0 6px}
+.panel .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.panel .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.panel .pills span{padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--line);font:600 12px var(--f);color:#e5e5ea}
+.x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;font:600 18px var(--f);cursor:pointer}
+/* start + garage */
+#start{align-items:flex-end;background:linear-gradient(transparent 45%,rgba(0,0,0,.55))}
+#start .panel{width:min(980px,100%);padding:20px 22px}
+#start h1{font:800 30px/1.05 var(--f);letter-spacing:-.02em;margin:2px 0 4px}
+.cars{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:12px}
+.car{padding:10px!important}
+.car{padding:12px;border-radius:14px;border:0;text-align:left;cursor:pointer;color:#f5f5f7;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--line);font:600 13px var(--f)}
+.car.on{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 2px #fff}
+.car small{display:block;color:var(--mute);font:500 11px var(--f);margin-top:2px}
+.bar{height:4px;border-radius:4px;background:rgba(255,255,255,.1);margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:#fff;border-radius:4px}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;margin-top:14px;color:#d2d2d7;font-size:14px}
+#load{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;justify-content:space-between;padding:22px;background:radial-gradient(1200px 700px at 70% 30%,#141b33,#07080c 70%);transition:opacity .5s}
+#load.off{opacity:0;pointer-events:none}
+#load .top,#load .bot{display:flex;justify-content:space-between;align-items:center;gap:12px;font:700 12px var(--f);letter-spacing:.12em;text-transform:uppercase;color:#86868b}
+#load .mid{max-width:980px}
+#load .tag{font:700 12px var(--f);letter-spacing:.14em;text-transform:uppercase;color:#7cc8ff;margin-bottom:14px}
+#fact{font:800 clamp(34px,6.4vw,84px)/1.02 var(--f);letter-spacing:-.035em;color:#f5f5f7;min-height:2.1em;transition:opacity .35s,transform .35s}
+#fact.out{opacity:0;transform:translateY(10px)}
+#factsrc{margin-top:14px;color:#86868b;font:500 14px var(--f)}
+#lnum{font:800 clamp(40px,7vw,96px)/1 var(--f);letter-spacing:-.04em;color:#f5f5f7;font-variant-numeric:tabular-nums}
+#news{display:flex;gap:28px;text-transform:none;letter-spacing:0;overflow:hidden;white-space:nowrap;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);font:600 14px var(--f);color:#d2d2d7}
+#news a{color:#d2d2d7;text-decoration:none}#news a:hover{color:#fff}
+#news .rail{display:inline-flex;gap:36px;animation:tick 60s linear infinite}
+@keyframes tick{to{transform:translateX(-50%)}}
+#enter{opacity:0;pointer-events:none;transition:opacity .4s}#enter.on{opacity:1;pointer-events:auto}
+@media (max-width:640px){#load{padding:16px}#load .top span:first-child{display:none}#load .bot{flex-direction:column;align-items:flex-start}}
+/* touch controls */
+#touch{display:none}
+@media (pointer:coarse),(any-pointer:coarse){
+  #touch{display:block}
+  #joy{position:fixed;left:18px;bottom:24px;width:132px;height:132px;border-radius:50%;z-index:6;touch-action:none}
+  #joy i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
+  .tb{position:fixed;z-index:6;width:68px;height:68px;border-radius:50%;border:0;color:#fff;font:700 12px var(--f);touch-action:none}
+  #tBoost{right:18px;bottom:28px}#tBrake{right:96px;bottom:20px;width:56px;height:56px}
+  #speed{left:auto;right:14px;bottom:auto;top:66px;padding:6px 12px}#speed b{font-size:20px}
+  #map{width:96px;height:96px;right:14px;top:112px;bottom:auto}
+  #prompt{bottom:180px}
+  .hk{display:none}
+}
+@media (max-width:640px){#clock{display:none}
+  .cars{grid-template-columns:repeat(4,1fr)}.car small,.car .bar{display:none}
+  #start h1{font-size:30px}.panel{padding:22px 18px 18px}.panel h2{font-size:24px}
+  .brand span{display:none}.tools .btn{height:36px;padding:0 13px;font-size:13px}
+}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="load">
+  <div class="top"><span>Prasanna Bhatkar · Enter the world</span><span id="lclock"></span></div>
+  <div class="mid"><div class="tag" id="ftag">Risk, priced</div><div id="fact">Building the island.</div><div id="factsrc"></div></div>
+  <div class="bot">
+    <div style="display:flex;align-items:flex-end;gap:16px"><div id="lnum">0%</div><button class="btn" id="enter" type="button">Enter the world</button></div>
+    <div style="flex:1;min-width:0;max-width:720px"><div style="margin-bottom:8px">Right now in the world · BBC News</div><div id="news"><span style="color:#6e6e73">Loading headlines</span></div></div>
+  </div>
+</div>
+
+<div id="hud">
+  <a class="brand glass" href="/"><img src="/moluscca-shell.png" alt=""><span>prasanna.lol</span></a>
+  <div class="tools"><span class="btn o glass" id="clock" style="cursor:default"></span><button class="btn o glass" id="bSound" type="button">Sound on</button><button class="btn o glass" id="bCars" type="button">Cars</button><button class="btn o glass" id="bHelp" type="button">Controls</button></div>
+</div>
+<div id="speed" class="glass"><b id="kmh">0</b>km/h</div>
+<div id="map" class="glass"><canvas id="mapc" width="300" height="300"></canvas></div>
+<div id="prompt" class="glass"><div><b id="ptitle"></b><small id="psub"></small></div><div id="plinks"></div></div>
+
+<div id="touch">
+  <div id="joy" class="glass"><i id="knob"></i></div>
+  <button class="tb glass" id="tBrake" type="button">Brake</button>
+  <button class="tb glass" id="tBoost" type="button">Boost</button>
+</div>
+
+<div id="start" class="over on"><div class="panel glass">
+  <div class="k">Prasanna Bhatkar</div>
+  <h1>Enter the world.</h1>
+  <p style="color:#a1a1a6">Drive into a glowing ring to visit that place. Day and night follow real Bengaluru time.</p>
+  <div class="k" style="margin-top:18px">Pick your car</div>
+  <div class="cars" id="cars"></div>
+  <div class="row"><button class="btn" id="go" type="button">Start driving</button><a class="btn o" href="/">Back to the site</a></div>
+</div></div>
+
+<div id="help" class="over"><div class="panel glass">
+  <button class="x" type="button" data-close>×</button>
+  <div class="k">Controls</div><h2>How to drive</h2>
+  <div class="keys">
+    <span><kbd>W</kbd> <kbd>S</kbd></span><span>Drive and reverse (arrow keys work too)</span>
+    <span><kbd>A</kbd> <kbd>D</kbd></span><span>Steer</span>
+    <span><kbd>Shift</kbd></span><span>Boost</span>
+    <span><kbd>Space</kbd></span><span>Brake</span>
+    <span><kbd>E</kbd></span><span>Visit the place you're parked at</span>
+    <span><kbd>R</kbd></span><span>Back to the start</span>
+    <span><kbd>C</kbd></span><span>Change car</span>
+    <span><kbd>Esc</kbd></span><span>Close a panel</span>
+  </div>
+  <p style="margin-top:14px">Knock over cones, boxes and balls. Hit a red barrel fast and it explodes. Day and night follow real Bengaluru time.</p><p>On a phone: left stick to drive and steer, Boost and Brake on the right, tap the card that pops up to open a stop.</p>
+</div></div>
+
+<div id="info" class="over"><div class="panel glass"><button class="x" type="button" data-close>×</button><div id="infoBody"></div></div></div>
+
+<script type="module" src="game.js"></script>
+</body>
+</html>

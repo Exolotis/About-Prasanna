@@ -34,7 +34,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://open.spotify.com https://*.spotifycdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://orhlwvmxnsztwhfimjru.supabase.co wss://orhlwvmxnsztwhfimjru.supabase.co https://api.open-meteo.com https://geocoding-api.open-meteo.com https://openlibrary.org https://*.spotify.com https://*.spotifycdn.com; frame-src https://cal.com https://app.cal.com https://open.spotify.com https://www.youtube-nocookie.com https://www.youtube.com; frame-ancestors 'self' https://www.moluscca.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://open.spotify.com https://*.spotifycdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' blob: https://orhlwvmxnsztwhfimjru.supabase.co wss://orhlwvmxnsztwhfimjru.supabase.co https://api.open-meteo.com https://geocoding-api.open-meteo.com https://openlibrary.org https://*.spotify.com https://*.spotifycdn.com; frame-src https://cal.com https://app.cal.com https://open.spotify.com https://www.youtube-nocookie.com https://www.youtube.com; frame-ancestors 'self' https://www.moluscca.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
         },
         {
           "key": "Cross-Origin-Opener-Policy",
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "source": "/(.*)\\.(png|jpg|jpeg|webp|svg|mp3|txt)",
+      "source": "/(.*)\\.(png|jpg|jpeg|webp|svg|mp3|txt|glb)",
       "headers": [
         {
           "key": "Cache-Control",
